@@ -156,14 +156,14 @@ func _generate_level() -> void:
 		walls = {}
 		var placed := 0
 		var tries := 0
-		while placed < target and tries < 250:
+		while placed < target and tries < 300:
 			tries += 1
-			var blob := _make_blob(4 + randi() % 5)  # 4..8 cells
-			if blob.size() < 4:
+			var wall := _make_wall()
+			if wall.size() < 4:
 				continue
-			for c in blob:
+			for c in wall:
 				walls[c] = true
-			placed += blob.size()
+			placed += wall.size()
 		var reach := _reachable(entrance)
 		if reach.has(exit_cell):
 			_populate_entities(reach)
@@ -173,41 +173,78 @@ func _generate_level() -> void:
 	_populate_entities(_reachable(entrance))
 
 
-# Grow one connected wall (orthogonal adjacency) of up to `target` cells,
-# kept isolated from other walls by at least one empty cell.
-func _make_blob(target: int) -> Array:
-	var start_cell := Vector2i(randi() % COLS, randi() % ROWS)
-	if not _blob_cell_ok(start_cell, {}):
+# Lay one wall: a 1-cell-thick line that runs straight and occasionally turns
+# 90° (an L / gentle snake). Never forms a 2x2 block and stays isolated from
+# other walls by at least one empty cell.
+func _make_wall() -> Array:
+	var cells := {}
+	var ordered: Array = []
+	var cur := Vector2i(randi() % COLS, randi() % ROWS)
+	if not _wall_cell_ok(cur, cells):
 		return []
-	var blob := {start_cell: true}
-	while blob.size() < target:
-		var cands: Array = []
-		for bc in blob:
-			for d in ORTHO_DIRS:
-				var nc: Vector2i = bc + d
-				if not blob.has(nc) and _blob_cell_ok(nc, blob):
-					cands.append(nc)
-		if cands.is_empty():
+	cells[cur] = true
+	ordered.append(cur)
+
+	var dir := _rand_axis_dir()
+	var total_len := 4 + randi() % 8     # 4..11 cells
+	var until_bend := 3 + randi() % 4    # run straight a bit before turning
+	while ordered.size() < total_len:
+		var nxt: Vector2i = cur + dir
+		if not _wall_cell_ok(nxt, cells):
 			break
-		blob[cands[randi() % cands.size()]] = true
-	return blob.keys()
+		cells[nxt] = true
+		ordered.append(nxt)
+		cur = nxt
+		until_bend -= 1
+		if until_bend <= 0 and randi() % 100 < 45:
+			dir = _perp(dir)
+			until_bend = 3 + randi() % 4
+	return ordered
 
 
-# A cell may join a blob if it is in bounds, not the entrance/exit, and not
-# touching (8-neighbourhood) any wall that belongs to a different blob.
-func _blob_cell_ok(cell: Vector2i, blob: Dictionary) -> bool:
+func _wall_cell_ok(cell: Vector2i, cells: Dictionary) -> bool:
 	if cell.x < 0 or cell.y < 0 or cell.x >= COLS or cell.y >= ROWS:
 		return false
 	if cell == Vector2i(0, 0) or cell == exit_cell:
 		return false
-	if walls.has(cell):
+	if walls.has(cell) or cells.has(cell):
 		return false
+	# isolation: no committed wall (from another wall) in the 8-neighbourhood
 	for dy in range(-1, 2):
 		for dx in range(-1, 2):
-			var nb := cell + Vector2i(dx, dy)
-			if walls.has(nb) and not blob.has(nb):
+			if walls.has(cell + Vector2i(dx, dy)):
 				return false
+	# keep 1-thick: adding this cell must not complete any 2x2 block
+	if _would_make_square(cell, cells):
+		return false
 	return true
+
+
+func _would_make_square(cell: Vector2i, cells: Dictionary) -> bool:
+	for corner in [Vector2i(0, 0), Vector2i(-1, 0), Vector2i(0, -1), Vector2i(-1, -1)]:
+		var full := true
+		for off in [Vector2i(0, 0), Vector2i(1, 0), Vector2i(0, 1), Vector2i(1, 1)]:
+			var cc: Vector2i = cell + corner + off
+			if cc != cell and not cells.has(cc):
+				full = false
+				break
+		if full:
+			return true
+	return false
+
+
+func _rand_axis_dir() -> Vector2i:
+	match randi() % 4:
+		0: return Vector2i(1, 0)
+		1: return Vector2i(-1, 0)
+		2: return Vector2i(0, 1)
+		_: return Vector2i(0, -1)
+
+
+func _perp(d: Vector2i) -> Vector2i:
+	if d.x != 0:
+		return Vector2i(0, 1) if randi() % 2 == 0 else Vector2i(0, -1)
+	return Vector2i(1, 0) if randi() % 2 == 0 else Vector2i(-1, 0)
 
 
 # Cells reachable by straight slides (1..6 in any of 8 directions), transitively.
