@@ -151,15 +151,19 @@ func is_wall(cell: Vector2i) -> bool:
 # Regenerates until the exit is reachable from the entrance.
 func _generate_level() -> void:
 	var entrance := Vector2i(0, 0)
-	for attempt in 25:
+	var target := int(COLS * ROWS * 0.15)
+	for attempt in 30:
 		walls = {}
-		for y in ROWS:
-			for x in COLS:
-				var c := Vector2i(x, y)
-				if c == entrance or c == exit_cell:
-					continue
-				if randf() < 0.14:
-					walls[c] = true
+		var placed := 0
+		var tries := 0
+		while placed < target and tries < 250:
+			tries += 1
+			var blob := _make_blob(4 + randi() % 5)  # 4..8 cells
+			if blob.size() < 4:
+				continue
+			for c in blob:
+				walls[c] = true
+			placed += blob.size()
 		var reach := _reachable(entrance)
 		if reach.has(exit_cell):
 			_populate_entities(reach)
@@ -167,6 +171,43 @@ func _generate_level() -> void:
 	# fallback: no walls at all
 	walls = {}
 	_populate_entities(_reachable(entrance))
+
+
+# Grow one connected wall (orthogonal adjacency) of up to `target` cells,
+# kept isolated from other walls by at least one empty cell.
+func _make_blob(target: int) -> Array:
+	var start_cell := Vector2i(randi() % COLS, randi() % ROWS)
+	if not _blob_cell_ok(start_cell, {}):
+		return []
+	var blob := {start_cell: true}
+	while blob.size() < target:
+		var cands: Array = []
+		for bc in blob:
+			for d in ORTHO_DIRS:
+				var nc: Vector2i = bc + d
+				if not blob.has(nc) and _blob_cell_ok(nc, blob):
+					cands.append(nc)
+		if cands.is_empty():
+			break
+		blob[cands[randi() % cands.size()]] = true
+	return blob.keys()
+
+
+# A cell may join a blob if it is in bounds, not the entrance/exit, and not
+# touching (8-neighbourhood) any wall that belongs to a different blob.
+func _blob_cell_ok(cell: Vector2i, blob: Dictionary) -> bool:
+	if cell.x < 0 or cell.y < 0 or cell.x >= COLS or cell.y >= ROWS:
+		return false
+	if cell == Vector2i(0, 0) or cell == exit_cell:
+		return false
+	if walls.has(cell):
+		return false
+	for dy in range(-1, 2):
+		for dx in range(-1, 2):
+			var nb := cell + Vector2i(dx, dy)
+			if walls.has(nb) and not blob.has(nb):
+				return false
+	return true
 
 
 # Cells reachable by straight slides (1..6 in any of 8 directions), transitively.
@@ -428,9 +469,9 @@ func _draw() -> void:
 	for j in range(ROWS + 1):
 		draw_line(Vector2(0, GRID_TOP + j * TILE), Vector2(COLS * TILE, GRID_TOP + j * TILE), C_LINE, 1.0)
 
-	# walls (solid blocks)
+	# walls (solid blocks — fill whole cell so adjacent walls merge seamlessly)
 	for w in walls:
-		draw_rect(Rect2(w.x * TILE + 1, GRID_TOP + w.y * TILE + 1, TILE - 2, TILE - 2), C_WALL, true)
+		draw_rect(Rect2(w.x * TILE, GRID_TOP + w.y * TILE, TILE, TILE), C_WALL, true)
 
 	# travelled pencil line
 	if path.size() >= 2:
