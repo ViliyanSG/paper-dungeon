@@ -32,7 +32,9 @@ const C_PANEL := Color(0.172, 0.149, 0.125)
 # ---- Pixel sprites (8x8 maps + palette) ----
 const SPRITES := {
 	"enemy": ["........", "..GGGG..", ".GGGGGG.", "GGGGGGGG", "GWBGGWBG", "GGGGGGGG", "EGGGGGGE", ".EEEEEE."],
+	"skull": ["..nnnn..", ".nnnnnn.", "nnnnnnnn", "nKKnnKKn", "nnnKKnnn", "nnnnnnnn", ".nKnKn..", "..nnnn.."],
 	"trap": ["........", "m.m.m.m.", "mmmmmmmm", "MmMmMmMm", "MMMMMMMM", "oooooooo", "OoOoOoOo", "OOOOOOOO"],
+	"beartrap": ["..MMMM..", ".MmmmmM.", "MmKKKKmM", "MmKKKKmM", "MmmmmmmM", ".MmmmmM.", "..MMMM..", "........"],
 	"coin": ["..KKKK..", ".KgyygK.", "KgyyggsK", "KgygggsK", "KgygggsK", "KgggggsK", ".KgsssK.", "..KKKK.."],
 	"heart": [".rr..rr.", "rprrrrrr", "rrrrrrrr", "rrrrrrrr", ".rrrrrr.", "..rrrr..", "...rr...", "........"],
 	"chest": ["........", ".KKKKKK.", ".KwwwwK.", ".gggggg.", ".KwllwK.", ".KwllwK.", ".KKKKKK.", "........"],
@@ -201,7 +203,12 @@ func _rand_in_quarter(q: int) -> Vector2i:
 
 
 func _place(type: String, x: int, y: int, extra: Dictionary = {}) -> void:
-	var e := {"type": type, "pos": Vector2i(x, y), "alive": true, "hp": 1, "atk": 0, "gold": 0}
+	var sprite := type
+	if type == "enemy":
+		sprite = "enemy" if randi() % 2 == 0 else "skull"
+	elif type == "trap":
+		sprite = "trap" if randi() % 2 == 0 else "beartrap"
+	var e := {"type": type, "sprite": sprite, "pos": Vector2i(x, y), "alive": true, "hp": 1, "atk": 0, "gold": 0}
 	for k in extra:
 		e[k] = extra[k]
 	entities.append(e)
@@ -658,7 +665,7 @@ func _draw() -> void:
 		if not e.alive:
 			_draw_dead(ctr)
 		else:
-			_draw_sprite(e.type, ctr)
+			_draw_sprite(e.sprite, ctr)
 
 	# movement options (after a roll) — show the full route incl. turns
 	var pc_start := cell_center(player.pos)
