@@ -25,6 +25,7 @@ const C_BLUE := Color(0.11, 0.23, 0.36)
 const C_GRAY := Color(0.6, 0.6, 0.6)
 const C_TEXT := Color(0.90, 0.86, 0.76)
 const C_WALL := Color(0.33, 0.30, 0.27)
+const C_HEART := Color(0.88, 0.25, 0.40)
 
 # ---- Game state ----
 var player := {}
@@ -279,7 +280,7 @@ func _populate_entities(reach: Dictionary) -> void:
 	free.shuffle()
 
 	var idx := 0
-	var counts := {"enemy": 6, "trap": 5, "coin": 8, "chest": 3}
+	var counts := {"enemy": 6, "trap": 5, "coin": 8, "chest": 3, "heart": 4}
 	for etype in counts:
 		for i in counts[etype]:
 			if idx >= free.size():
@@ -409,6 +410,10 @@ func _do_move(target: Vector2i) -> void:
 	option_paths = {}
 	awaiting_move = false
 
+	var start_pos: Vector2i = player.pos
+	var hp_before: int = player.hp
+	var gold_before: int = player.gold
+
 	for cell in full_path:
 		player.pos = cell
 		path.append(cell)
@@ -419,8 +424,38 @@ func _do_move(target: Vector2i) -> void:
 	update_hud()
 	if not game_over:
 		roll_button.disabled = false
+		var steps := full_path.size()
+		var first_dir: Vector2i = full_path[0] - start_pos if steps > 0 else Vector2i.ZERO
+		var msg := "Ход %s, %d стъпки." % [_dir_word(first_dir), steps]
+		var gd: int = player.gold - gold_before
+		var hd: int = player.hp - hp_before
+		if gd != 0:
+			msg += " %+d GP." % gd
+		if hd != 0:
+			msg += " %+d HP." % hd
+		add_log(msg)
 	_update_roll_label()
 	queue_redraw()
+
+
+func _dir_word(d: Vector2i) -> String:
+	var h := ""
+	var v := ""
+	if d.x > 0:
+		h = "дясно"
+	elif d.x < 0:
+		h = "ляво"
+	if d.y > 0:
+		v = "долу"
+	elif d.y < 0:
+		v = "горе"
+	if h != "" and v != "":
+		return v + "-" + h
+	elif h != "":
+		return "на" + h
+	elif v != "":
+		return "на" + v
+	return "?"
 
 
 func _update_roll_label() -> void:
@@ -438,21 +473,16 @@ func _resolve_tile(cell: Vector2i) -> void:
 	ent.alive = false
 	match ent.type:
 		"enemy":
-			var dmg := 1 + randi() % 6
-			player.hp -= dmg
-			add_log("Враг! -%d HP." % dmg)
+			player.hp -= 1 + randi() % 6
 			_check_death()
 		"trap":
-			var loss := 1 + randi() % 6
-			player.gold = maxi(0, player.gold - loss)
-			add_log("Капан! -%d GP." % loss)
+			player.gold = maxi(0, player.gold - (1 + randi() % 6))
 		"coin":
 			player.gold += 1
-			add_log("Монета! +1 GP.")
 		"chest":
-			var gain := 1 + randi() % 6
-			player.gold += gain
-			add_log("Сандък! +%d GP." % gain)
+			player.gold += 1 + randi() % 6
+		"heart":
+			player.hp = mini(player.max_hp, player.hp + 1 + randi() % 6)
 
 
 # =====================================================================
@@ -483,10 +513,7 @@ func update_hud() -> void:
 
 
 func add_log(msg: String) -> void:
-	log_lines.append(msg)
-	while log_lines.size() > 7:
-		log_lines.pop_front()
-	log_label.text = "\n".join(log_lines)
+	log_label.text = msg  # only the most recent event
 
 
 # =====================================================================
@@ -541,6 +568,8 @@ func _draw() -> void:
 				draw_rect(Rect2(ctr.x - hw, ctr.y - hh, hw * 2, hh * 2), C_GOLD, true)
 				draw_rect(Rect2(ctr.x - hw, ctr.y - hh, hw * 2, hh * 2), C_INK, false, 1.5)
 				draw_line(ctr + Vector2(-hw, -hh * 0.25), ctr + Vector2(hw, -hh * 0.25), C_INK, 1.2)
+			"heart":
+				_draw_heart(ctr)
 
 	# entrance + exit
 	draw_rect(Rect2(2, GRID_TOP + 2, TILE - 4, TILE - 4), C_GRAY, false, 2.0)
@@ -569,6 +598,17 @@ func _draw() -> void:
 	var pc := cell_center(player.pos)
 	draw_circle(pc, TILE * 0.34, C_INK)
 	draw_circle(pc, TILE * 0.27, C_BLUE)
+
+
+func _draw_heart(ctr: Vector2) -> void:
+	var s := TILE * 0.32
+	draw_circle(ctr + Vector2(-s * 0.42, -s * 0.18), s * 0.42, C_HEART)
+	draw_circle(ctr + Vector2(s * 0.42, -s * 0.18), s * 0.42, C_HEART)
+	var tri := PackedVector2Array([
+		ctr + Vector2(-s * 0.78, -s * 0.02),
+		ctr + Vector2(s * 0.78, -s * 0.02),
+		ctr + Vector2(0, s * 0.72)])
+	draw_colored_polygon(tri, C_HEART)
 
 
 func _draw_dead(ctr: Vector2) -> void:
