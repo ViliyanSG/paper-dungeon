@@ -1,11 +1,17 @@
 extends Node2D
-## Paper Dungeon — Phase 0 core loop (Godot 4)
-## Grid movement by drawing a pencil line, pencil-spin randomizer,
-## combat, traps, chests, HP, win/lose. Touch + mouse supported.
+## Paper Dungeon — core loop (Godot 4)
+## Roll a die: odd = diagonal move, even = orthogonal move; number = steps
+## (stops at wall). After rolling, up to 4 destination options appear;
+## click one to slide there in a straight line. The travelled path is kept
+## as a continuous pencil line. Touch + mouse supported.
 
 const TILE := 60
 const COLS := 12
 const ROWS := 12
+const GRID_TOP := 100   # px from top where the play field starts
+
+const ORTHO_DIRS := [Vector2i(1, 0), Vector2i(-1, 0), Vector2i(0, 1), Vector2i(0, -1)]
+const DIAG_DIRS := [Vector2i(1, 1), Vector2i(1, -1), Vector2i(-1, 1), Vector2i(-1, -1)]
 
 # ---- Paper theme colors ----
 const C_PAPER := Color(0.957, 0.937, 0.882)
@@ -21,7 +27,10 @@ const C_TEXT := Color(0.90, 0.86, 0.76)
 
 # ---- Game state ----
 var player := {}
-var moves_left := 0
+var current_n := 0
+var diagonal := false
+var options: Array[Vector2i] = []
+var awaiting_move := false
 var path: Array[Vector2i] = []
 var entities: Array = []
 var exit_cell := Vector2i(COLS - 1, ROWS - 1)
@@ -30,9 +39,10 @@ var game_over := false
 var log_lines: Array[String] = []
 
 # ---- UI nodes ----
-var info_label: Label
-var spin_result_label: Label
-var spin_button: Button
+var hp_label: Label
+var gold_label: Label
+var roll_button: Button
+var roll_result_label: Label
 var reset_button: Button
 var log_label: Label
 
@@ -54,17 +64,25 @@ func _build_ui() -> void:
 	root.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	layer.add_child(root)
 
-	info_label = _make_label(root, Vector2(20, 730), Vector2(460, 40), 26, C_TEXT)
-	spin_result_label = _make_label(root, Vector2(480, 730), Vector2(220, 40), 26, C_GOLD)
-	spin_result_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	# top bar
+	hp_label = _make_label(root, Vector2(20, 26), Vector2(340, 50), 36, C_RED)
+	gold_label = _make_label(root, Vector2(360, 26), Vector2(340, 50), 36, C_GOLD)
+	gold_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 
-	spin_button = _make_button(root, "Завърти молива", Vector2(20, 790), Vector2(440, 80))
-	spin_button.pressed.connect(_on_spin)
+	# bottom controls
+	roll_button = _make_button(root, "Хвърли зар", Vector2(20, 870), Vector2(430, 120))
+	roll_button.pressed.connect(_on_roll)
 
-	reset_button = _make_button(root, "Ново ниво", Vector2(480, 790), Vector2(220, 80))
+	roll_result_label = _make_label(root, Vector2(470, 870), Vector2(230, 120), 34, C_GOLD)
+	roll_result_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	roll_result_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	roll_result_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+
+	reset_button = _make_button(root, "Ново ниво", Vector2(470, 1010), Vector2(230, 70))
+	reset_button.add_theme_font_size_override("font_size", 22)
 	reset_button.pressed.connect(new_level)
 
-	log_label = _make_label(root, Vector2(20, 900), Vector2(680, 350), 22, C_TEXT)
+	log_label = _make_label(root, Vector2(20, 1100), Vector2(680, 170), 22, C_TEXT)
 	log_label.vertical_alignment = VERTICAL_ALIGNMENT_TOP
 	log_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 
@@ -84,7 +102,7 @@ func _make_button(parent: Control, text: String, pos: Vector2, sz: Vector2) -> B
 	b.text = text
 	b.position = pos
 	b.size = sz
-	b.add_theme_font_size_override("font_size", 26)
+	b.add_theme_font_size_override("font_size", 32)
 	parent.add_child(b)
 	return b
 
@@ -94,7 +112,10 @@ func _make_button(parent: Control, text: String, pos: Vector2, sz: Vector2) -> B
 # =====================================================================
 func new_level() -> void:
 	player = {"pos": Vector2i(0, 0), "hp": 10, "max_hp": 10, "atk": 3, "gold": 0}
-	moves_left = 0
+	current_n = 0
+	diagonal = false
+	options = []
+	awaiting_move = false
 	path = [Vector2i(0, 0)]
 	entities = []
 	exit_cell = Vector2i(COLS - 1, ROWS - 1)
@@ -102,7 +123,7 @@ func new_level() -> void:
 	game_over = false
 	log_lines = []
 
-	# Hand-designed Phase 0 layout
+	# Hand-designed layout
 	_place("enemy", 3, 1, {"hp": 4, "atk": 2})
 	_place("enemy", 6, 4, {"hp": 5, "atk": 3})
 	_place("enemy", 9, 8, {"hp": 7, "atk": 4})   # mini-boss
@@ -113,9 +134,9 @@ func new_level() -> void:
 	_place("chest", 8, 6, {"gold": 12})
 	_place("chest", 1, 8, {"gold": 6})
 
-	add_log("Ново подземие. Завърти молива за да започнеш.")
-	spin_button.disabled = false
-	spin_result_label.text = ""
+	add_log("Ново подземие. Хвърли зар за да започнеш.")
+	roll_button.disabled = false
+	roll_result_label.text = ""
 	update_hud()
 	queue_redraw()
 
@@ -135,58 +156,100 @@ func entity_at(cell: Vector2i):
 
 
 # =====================================================================
-#  Randomizer — Pencil Spin substitute
+#  Roll the die
 # =====================================================================
-func _on_spin() -> void:
-	if game_over or spinning or moves_left > 0:
+func _on_roll() -> void:
+	if game_over or spinning or awaiting_move:
 		return
 	spinning = true
-	spin_button.disabled = true
-	var total := 18 + (randi() % 8)
-	for i in total:
-		spin_result_label.text = "Молив: %d" % (1 + randi() % 6)
-		await get_tree().create_timer(0.05 + i * 0.003).timeout
-	var n := 1 + randi() % 6
-	moves_left = n
-	spinning = false
-	add_log("Моливът спря на %d. Начертай пътя." % n)
-	update_hud()
-
-
-# =====================================================================
-#  Input — draw movement line
-# =====================================================================
-func _unhandled_input(event: InputEvent) -> void:
-	var screen_pos = null
-	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
-		screen_pos = event.position
-	elif event is InputEventScreenTouch and event.pressed:
-		screen_pos = event.position
-	if screen_pos == null:
-		return
-	if game_over or spinning or moves_left <= 0:
-		return
-
-	var world: Vector2 = get_global_transform_with_canvas().affine_inverse() * screen_pos
-	var cell := Vector2i(int(world.x) / TILE, int(world.y) / TILE)
-	if cell.x < 0 or cell.y < 0 or cell.x >= COLS or cell.y >= ROWS:
-		return
-
-	var head: Vector2i = path[path.size() - 1]
-	var dist := absi(cell.x - head.x) + absi(cell.y - head.y)
-	if dist != 1:
-		return  # only orthogonally adjacent
-
-	player.pos = cell
-	path.append(cell)
-	moves_left -= 1
-	_resolve_tile(cell)
-	update_hud()
+	roll_button.disabled = true
+	options = []
 	queue_redraw()
 
-	if moves_left == 0 and not game_over:
-		add_log("Ходът свърши. Завърти молива пак.")
-		spin_button.disabled = false
+	var total := 16 + randi() % 8
+	for i in total:
+		roll_result_label.text = str(1 + randi() % 6)
+		await get_tree().create_timer(0.05 + i * 0.004).timeout
+
+	current_n = 1 + randi() % 6
+	diagonal = (current_n % 2) == 1
+	spinning = false
+	_compute_options()
+
+	var mode_txt := "диагонал" if diagonal else "право"
+	roll_result_label.text = "%d\n%s" % [current_n, mode_txt]
+
+	if options.is_empty():
+		add_log("Няма накъде. Хвърли пак.")
+		roll_button.disabled = false
+	else:
+		awaiting_move = true
+		add_log("Хвърли %d (%s). Избери накъде." % [current_n, mode_txt])
+	queue_redraw()
+
+
+func _compute_options() -> void:
+	options = []
+	var dirs := DIAG_DIRS if diagonal else ORTHO_DIRS
+	for d in dirs:
+		var k := _max_steps(player.pos, d, current_n)
+		if k >= 1:
+			options.append(player.pos + d * k)
+
+
+func _max_steps(from: Vector2i, d: Vector2i, n: int) -> int:
+	var limit := n
+	if d.x > 0:
+		limit = mini(limit, (COLS - 1) - from.x)
+	elif d.x < 0:
+		limit = mini(limit, from.x)
+	if d.y > 0:
+		limit = mini(limit, (ROWS - 1) - from.y)
+	elif d.y < 0:
+		limit = mini(limit, from.y)
+	return limit
+
+
+# =====================================================================
+#  Input — pick a destination option
+# =====================================================================
+func _unhandled_input(event: InputEvent) -> void:
+	var sp = null
+	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+		sp = event.position
+	elif event is InputEventScreenTouch and event.pressed:
+		sp = event.position
+	if sp == null:
+		return
+	if game_over or spinning or not awaiting_move:
+		return
+
+	var world: Vector2 = get_global_transform_with_canvas().affine_inverse() * sp
+	if world.y < GRID_TOP:
+		return
+	var cell := Vector2i(int(world.x / TILE), int((world.y - GRID_TOP) / TILE))
+	if cell in options:
+		_do_move(cell)
+
+
+func _do_move(target: Vector2i) -> void:
+	var d := Vector2i(signi(target.x - player.pos.x), signi(target.y - player.pos.y))
+	var steps := maxi(absi(target.x - player.pos.x), absi(target.y - player.pos.y))
+	awaiting_move = false
+	options = []
+
+	for i in steps:
+		var cell: Vector2i = player.pos + d
+		player.pos = cell
+		path.append(cell)
+		_resolve_tile(cell)
+		if game_over:
+			break
+
+	update_hud()
+	queue_redraw()
+	if not game_over:
+		roll_button.disabled = false
 
 
 func _resolve_tile(cell: Vector2i) -> void:
@@ -205,7 +268,7 @@ func _resolve_tile(cell: Vector2i) -> void:
 		"chest":
 			player.gold += ent.gold
 			ent.alive = false
-			add_log("Сандък! +%d злато." % ent.gold)
+			add_log("Сандък! +%d GP." % ent.gold)
 		"enemy":
 			_fight(ent)
 
@@ -234,28 +297,29 @@ func _check_death() -> void:
 	if player.hp <= 0:
 		player.hp = 0
 		game_over = true
+		awaiting_move = false
 		add_log("Загина. Натисни „Ново ниво\".")
-		spin_button.disabled = true
+		roll_button.disabled = true
 
 
 func _win() -> void:
 	game_over = true
-	add_log("Победа! Стигна изхода със %d злато." % player.gold)
-	spin_button.disabled = true
+	awaiting_move = false
+	add_log("Победа! Стигна изхода със %d GP." % player.gold)
+	roll_button.disabled = true
 
 
 # =====================================================================
 #  HUD / log
 # =====================================================================
 func update_hud() -> void:
-	info_label.text = "HP %d/%d   ATK %d   Злато %d" % [player.hp, player.max_hp, player.atk, player.gold]
-	if moves_left > 0:
-		spin_result_label.text = "Ход: %d" % moves_left
+	hp_label.text = "HP %d/%d" % [player.hp, player.max_hp]
+	gold_label.text = "GP %d" % player.gold
 
 
 func add_log(msg: String) -> void:
 	log_lines.append(msg)
-	while log_lines.size() > 8:
+	while log_lines.size() > 7:
 		log_lines.pop_front()
 	log_label.text = "\n".join(log_lines)
 
@@ -264,20 +328,20 @@ func add_log(msg: String) -> void:
 #  Rendering
 # =====================================================================
 func cell_center(c: Vector2i) -> Vector2:
-	return Vector2(c.x * TILE + TILE / 2.0, c.y * TILE + TILE / 2.0)
+	return Vector2(c.x * TILE + TILE / 2.0, GRID_TOP + c.y * TILE + TILE / 2.0)
 
 
 func _draw() -> void:
-	# paper background
-	draw_rect(Rect2(0, 0, COLS * TILE, ROWS * TILE), C_PAPER, true)
+	# paper background of the play field
+	draw_rect(Rect2(0, GRID_TOP, COLS * TILE, ROWS * TILE), C_PAPER, true)
 
 	# grid lines
 	for i in range(COLS + 1):
-		draw_line(Vector2(i * TILE, 0), Vector2(i * TILE, ROWS * TILE), C_LINE, 1.0)
+		draw_line(Vector2(i * TILE, GRID_TOP), Vector2(i * TILE, GRID_TOP + ROWS * TILE), C_LINE, 1.0)
 	for j in range(ROWS + 1):
-		draw_line(Vector2(0, j * TILE), Vector2(COLS * TILE, j * TILE), C_LINE, 1.0)
+		draw_line(Vector2(0, GRID_TOP + j * TILE), Vector2(COLS * TILE, GRID_TOP + j * TILE), C_LINE, 1.0)
 
-	# pencil trail
+	# travelled pencil line
 	if path.size() >= 2:
 		var pts := PackedVector2Array()
 		for c in path:
@@ -306,10 +370,18 @@ func _draw() -> void:
 				draw_rect(Rect2(ctr.x - 13, ctr.y - 11, 26, 22), C_INK, false, 2.0)
 
 	# entrance + exit
-	draw_rect(Rect2(2, 2, TILE - 4, TILE - 4), C_GRAY, false, 2.0)
+	draw_rect(Rect2(2, GRID_TOP + 2, TILE - 4, TILE - 4), C_GRAY, false, 2.0)
 	var ec := cell_center(exit_cell)
 	draw_rect(Rect2(ec.x - 16, ec.y - 20, 32, 40), C_GREEN, true)
 	draw_circle(ec + Vector2(9, 0), 3, C_PAPER)
+
+	# movement options (after a roll)
+	var pc_start := cell_center(player.pos)
+	for opt in options:
+		var oc := cell_center(opt)
+		draw_line(pc_start, oc, Color(0.29, 0.49, 0.35, 0.55), 2.0)
+		draw_circle(oc, 22, Color(0.29, 0.49, 0.35, 0.30))
+		draw_arc(oc, 22, 0, TAU, 24, C_GREEN, 2.5)
 
 	# player
 	var pc := cell_center(player.pos)
