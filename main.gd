@@ -241,9 +241,8 @@ func _on_slot_pressed(i: int) -> void:
 
 
 func _exit_to_menu() -> void:
-	if current_slot >= 0:
-		_save_slot(current_slot, {
-			"gold": player.gold, "hp": player.hp, "max_hp": player.max_hp, "level": level})
+	if current_slot >= 0 and state == S.PLAYING:
+		_save_slot(current_slot, _serialize_state())
 	_show_menu()
 
 
@@ -283,6 +282,9 @@ func _refresh_slots() -> void:
 
 
 func _begin_run(data) -> void:
+	if data is Dictionary and data.has("walls"):
+		_restore_state(data)            # resume the exact saved level + path
+		return
 	if data == null:
 		player = {"pos": Vector2i(0, 0), "hp": 10, "max_hp": 10, "atk": 3, "gold": 0}
 		level = 1
@@ -295,6 +297,78 @@ func _begin_run(data) -> void:
 			"gold": int(data.get("gold", 0))}
 		level = int(data.get("level", 1))
 	new_level()
+
+
+func _to_vec(a) -> Vector2i:
+	return Vector2i(int(a[0]), int(a[1]))
+
+
+func _serialize_state() -> Dictionary:
+	var w := []
+	for c in walls:
+		w.append([c.x, c.y])
+	var ents := []
+	for e in entities:
+		ents.append({"t": e.type, "s": e.sprite, "x": e.pos.x, "y": e.pos.y, "a": e.alive})
+	var pth := []
+	for c in path:
+		pth.append([c.x, c.y])
+	return {
+		"level": level,
+		"gold": player.gold, "hp": player.hp, "max_hp": player.max_hp,
+		"entrance": [entrance_cell.x, entrance_cell.y],
+		"exit": [exit_cell.x, exit_cell.y],
+		"ppos": [player.pos.x, player.pos.y],
+		"walls": w,
+		"entities": ents,
+		"path": pth,
+	}
+
+
+func _restore_state(data: Dictionary) -> void:
+	level = int(data.get("level", 1))
+	entrance_cell = _to_vec(data.get("entrance", [0, 0]))
+	exit_cell = _to_vec(data.get("exit", [COLS - 1, ROWS - 1]))
+	player = {
+		"pos": _to_vec(data.get("ppos", [0, 0])),
+		"hp": int(data.get("hp", 10)),
+		"max_hp": int(data.get("max_hp", 10)),
+		"atk": 3,
+		"gold": int(data.get("gold", 0))}
+
+	walls = {}
+	for a in data.get("walls", []):
+		walls[_to_vec(a)] = true
+
+	entities = []
+	for e in data.get("entities", []):
+		entities.append({
+			"type": e.get("t", "coin"), "sprite": e.get("s", "coin"),
+			"pos": Vector2i(int(e.get("x", 0)), int(e.get("y", 0))),
+			"alive": bool(e.get("a", true)), "hp": 1, "atk": 0, "gold": 0})
+
+	path = []
+	for a in data.get("path", []):
+		path.append(_to_vec(a))
+	if path.is_empty():
+		path = [player.pos]
+
+	current_n = 0
+	diagonal = false
+	options = []
+	option_paths = {}
+	awaiting_move = false
+	spinning = false
+	game_over = false
+	pending_advance = false
+	pending_respawn = false
+	log_lines = []
+
+	add_log("Ниво %d. Хвърли зар за да продължиш." % level)
+	roll_button.disabled = false
+	roll_result_label.text = ""
+	update_hud()
+	queue_redraw()
 
 
 # =====================================================================
