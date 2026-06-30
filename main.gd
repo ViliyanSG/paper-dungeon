@@ -126,15 +126,17 @@ func new_level() -> void:
 	log_lines = []
 
 	# Hand-designed layout
-	_place("enemy", 3, 1, {"hp": 4, "atk": 2})
-	_place("enemy", 6, 4, {"hp": 5, "atk": 3})
-	_place("enemy", 9, 8, {"hp": 7, "atk": 4})   # mini-boss
+	_place("enemy", 3, 1)
+	_place("enemy", 6, 4)
+	_place("enemy", 9, 8)
 	_place("trap", 2, 4)
 	_place("trap", 7, 7)
 	_place("trap", 4, 9)
-	_place("chest", 5, 2, {"gold": 8})
-	_place("chest", 8, 6, {"gold": 12})
-	_place("chest", 1, 8, {"gold": 6})
+	_place("coin", 5, 2)
+	_place("coin", 8, 6)
+	_place("coin", 1, 8)
+	_place("chest", 10, 3)
+	_place("chest", 3, 10)
 
 	add_log("Ново подземие. Хвърли зар за да започнеш.")
 	roll_button.disabled = false
@@ -296,40 +298,29 @@ func _resolve_tile(cell: Vector2i) -> void:
 	var ent = entity_at(cell)
 	if ent == null:
 		return
+	ent.alive = false
 	match ent.type:
-		"trap":
-			player.hp -= 2
-			ent.alive = false
-			add_log("Капан! -2 HP.")
-			_check_death()
-		"chest":
-			player.gold += ent.gold
-			ent.alive = false
-			add_log("Сандък! +%d GP." % ent.gold)
 		"enemy":
-			_fight(ent)
+			var dmg := 1 + randi() % 6
+			player.hp -= dmg
+			add_log("Враг! -%d HP." % dmg)
+			_check_death()
+		"trap":
+			var loss := 1 + randi() % 6
+			player.gold = maxi(0, player.gold - loss)
+			add_log("Капан! -%d GP." % loss)
+		"coin":
+			player.gold += 1
+			add_log("Монета! +1 GP.")
+		"chest":
+			var gain := 1 + randi() % 6
+			player.gold += gain
+			add_log("Сандък! +%d GP." % gain)
 
 
 # =====================================================================
-#  Combat
+#  Death / win
 # =====================================================================
-func _fight(enemy: Dictionary) -> void:
-	add_log("Битка! Враг HP %d." % enemy.hp)
-	while enemy.hp > 0 and player.hp > 0:
-		var my_roll: int = player.atk + (randi() % 3)
-		enemy.hp -= my_roll
-		add_log("  Удряш за %d → враг HP %d." % [my_roll, max(0, enemy.hp)])
-		if enemy.hp <= 0:
-			break
-		var enemy_roll: int = enemy.atk + (randi() % 2)
-		player.hp -= enemy_roll
-		add_log("  Врагът удря за %d → твой HP %d." % [enemy_roll, max(0, player.hp)])
-	if enemy.hp <= 0:
-		enemy.alive = false
-		add_log("  Победи врага!")
-	_check_death()
-
-
 func _check_death() -> void:
 	if player.hp <= 0:
 		player.hp = 0
@@ -393,18 +384,19 @@ func _draw() -> void:
 			continue
 		match e.type:
 			"enemy":
-				if e.atk >= 4:
-					draw_circle(ctr, 20, C_INK)
-					draw_circle(ctr, 17, C_RED)
-				else:
-					draw_circle(ctr, 15, C_RED)
+				draw_circle(ctr, 16, C_INK)
+				draw_circle(ctr, 13, C_RED)
 			"trap":
 				var tp := PackedVector2Array([
 					ctr + Vector2(0, -15), ctr + Vector2(15, 13), ctr + Vector2(-15, 13)])
 				draw_colored_polygon(tp, C_BROWN)
+			"coin":
+				draw_circle(ctr, 12, C_GOLD)
+				draw_arc(ctr, 12, 0, TAU, 20, C_INK, 1.5)
 			"chest":
-				draw_rect(Rect2(ctr.x - 13, ctr.y - 11, 26, 22), C_GOLD, true)
-				draw_rect(Rect2(ctr.x - 13, ctr.y - 11, 26, 22), C_INK, false, 2.0)
+				draw_rect(Rect2(ctr.x - 14, ctr.y - 11, 28, 22), C_GOLD, true)
+				draw_rect(Rect2(ctr.x - 14, ctr.y - 11, 28, 22), C_INK, false, 2.0)
+				draw_line(ctr + Vector2(-14, -3), ctr + Vector2(14, -3), C_INK, 1.5)
 
 	# entrance + exit
 	draw_rect(Rect2(2, GRID_TOP + 2, TILE - 4, TILE - 4), C_GRAY, false, 2.0)
