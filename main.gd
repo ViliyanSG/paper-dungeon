@@ -295,7 +295,13 @@ func _populate_entities(reach: Dictionary) -> void:
 	free.shuffle()
 
 	var idx := 0
-	var counts := {"enemy": 6, "trap": 5, "coin": 8, "chest": 3, "heart": 4}
+	var counts := {
+		"enemy": 1 + randi() % 10,   # 1..10
+		"trap": 1 + randi() % 10,    # 1..10
+		"coin": 1 + randi() % 10,    # 1..10
+		"heart": 1 + randi() % 10,   # 1..10
+		"chest": randi() % 6,        # 0..5
+	}
 	for etype in counts:
 		for i in counts[etype]:
 			if idx >= free.size():
