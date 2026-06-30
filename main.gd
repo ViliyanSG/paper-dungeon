@@ -173,7 +173,7 @@ func _unhandled_input(event: InputEvent) -> void:
 		return
 
 	var head: Vector2i = path[path.size() - 1]
-	var dist := abs(cell.x - head.x) + abs(cell.y - head.y)
+	var dist := absi(cell.x - head.x) + absi(cell.y - head.y)
 	if dist != 1:
 		return  # only orthogonally adjacent
 
