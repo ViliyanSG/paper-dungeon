@@ -5,9 +5,9 @@ extends Node2D
 ## click one to slide there in a straight line. The travelled path is kept
 ## as a continuous pencil line. Touch + mouse supported.
 
-const TILE := 60
-const COLS := 12
-const ROWS := 12
+const TILE := 36
+const COLS := 20
+const ROWS := 20
 const GRID_TOP := 100   # px from top where the play field starts
 
 const ORTHO_DIRS := [Vector2i(1, 0), Vector2i(-1, 0), Vector2i(0, 1), Vector2i(0, -1)]
@@ -125,18 +125,24 @@ func new_level() -> void:
 	game_over = false
 	log_lines = []
 
-	# Hand-designed layout
-	_place("enemy", 3, 1)
-	_place("enemy", 6, 4)
-	_place("enemy", 9, 8)
-	_place("trap", 2, 4)
-	_place("trap", 7, 7)
-	_place("trap", 4, 9)
-	_place("coin", 5, 2)
-	_place("coin", 8, 6)
-	_place("coin", 1, 8)
-	_place("chest", 10, 3)
-	_place("chest", 3, 10)
+	# Hand-designed layout (spread across the 20x20 board)
+	_place("enemy", 4, 2)
+	_place("enemy", 11, 5)
+	_place("enemy", 16, 3)
+	_place("enemy", 7, 13)
+	_place("enemy", 17, 16)
+	_place("trap", 3, 8)
+	_place("trap", 12, 10)
+	_place("trap", 6, 17)
+	_place("trap", 15, 8)
+	_place("coin", 8, 3)
+	_place("coin", 2, 14)
+	_place("coin", 13, 15)
+	_place("coin", 18, 7)
+	_place("coin", 5, 5)
+	_place("chest", 15, 12)
+	_place("chest", 9, 18)
+	_place("chest", 11, 1)
 
 	add_log("Ново подземие. Хвърли зар за да започнеш.")
 	roll_button.disabled = false
@@ -374,7 +380,7 @@ func _draw() -> void:
 		var pts := PackedVector2Array()
 		for c in path:
 			pts.append(cell_center(c))
-		draw_polyline(pts, C_INK, 4.0, true)
+		draw_polyline(pts, C_INK, 3.0, true)
 
 	# entities
 	for e in entities:
@@ -384,28 +390,34 @@ func _draw() -> void:
 			continue
 		match e.type:
 			"enemy":
-				draw_circle(ctr, 16, C_INK)
-				draw_circle(ctr, 13, C_RED)
+				draw_circle(ctr, TILE * 0.30, C_INK)
+				draw_circle(ctr, TILE * 0.24, C_RED)
 			"trap":
+				var t := TILE * 0.28
 				var tp := PackedVector2Array([
-					ctr + Vector2(0, -15), ctr + Vector2(15, 13), ctr + Vector2(-15, 13)])
+					ctr + Vector2(0, -t), ctr + Vector2(t, t * 0.85), ctr + Vector2(-t, t * 0.85)])
 				draw_colored_polygon(tp, C_BROWN)
 			"coin":
-				draw_circle(ctr, 12, C_GOLD)
-				draw_arc(ctr, 12, 0, TAU, 20, C_INK, 1.5)
+				draw_circle(ctr, TILE * 0.22, C_GOLD)
+				draw_arc(ctr, TILE * 0.22, 0, TAU, 18, C_INK, 1.5)
 			"chest":
-				draw_rect(Rect2(ctr.x - 14, ctr.y - 11, 28, 22), C_GOLD, true)
-				draw_rect(Rect2(ctr.x - 14, ctr.y - 11, 28, 22), C_INK, false, 2.0)
-				draw_line(ctr + Vector2(-14, -3), ctr + Vector2(14, -3), C_INK, 1.5)
+				var hw := TILE * 0.40
+				var hh := TILE * 0.32
+				draw_rect(Rect2(ctr.x - hw, ctr.y - hh, hw * 2, hh * 2), C_GOLD, true)
+				draw_rect(Rect2(ctr.x - hw, ctr.y - hh, hw * 2, hh * 2), C_INK, false, 1.5)
+				draw_line(ctr + Vector2(-hw, -hh * 0.25), ctr + Vector2(hw, -hh * 0.25), C_INK, 1.2)
 
 	# entrance + exit
 	draw_rect(Rect2(2, GRID_TOP + 2, TILE - 4, TILE - 4), C_GRAY, false, 2.0)
 	var ec := cell_center(exit_cell)
-	draw_rect(Rect2(ec.x - 16, ec.y - 20, 32, 40), C_GREEN, true)
-	draw_circle(ec + Vector2(9, 0), 3, C_PAPER)
+	var ew := TILE * 0.30
+	var eh := TILE * 0.40
+	draw_rect(Rect2(ec.x - ew, ec.y - eh, ew * 2, eh * 2), C_GREEN, true)
+	draw_circle(ec + Vector2(ew * 0.5, 0), TILE * 0.07, C_PAPER)
 
 	# movement options (after a roll) — show the full route incl. turns
 	var pc_start := cell_center(player.pos)
+	var opt_r := TILE * 0.40
 	for opt in options:
 		var op_path: Array = option_paths.get(opt, [])
 		var pts := PackedVector2Array()
@@ -413,17 +425,18 @@ func _draw() -> void:
 		for c in op_path:
 			pts.append(cell_center(c))
 		if pts.size() >= 2:
-			draw_polyline(pts, Color(0.29, 0.49, 0.35, 0.5), 2.5, true)
+			draw_polyline(pts, Color(0.29, 0.49, 0.35, 0.5), 2.0, true)
 		var oc := cell_center(opt)
-		draw_circle(oc, 22, Color(0.29, 0.49, 0.35, 0.30))
-		draw_arc(oc, 22, 0, TAU, 24, C_GREEN, 2.5)
+		draw_circle(oc, opt_r, Color(0.29, 0.49, 0.35, 0.30))
+		draw_arc(oc, opt_r, 0, TAU, 22, C_GREEN, 2.0)
 
 	# player
 	var pc := cell_center(player.pos)
-	draw_circle(pc, 18, C_INK)
-	draw_circle(pc, 14, C_BLUE)
+	draw_circle(pc, TILE * 0.34, C_INK)
+	draw_circle(pc, TILE * 0.27, C_BLUE)
 
 
 func _draw_dead(ctr: Vector2) -> void:
-	draw_line(ctr + Vector2(-11, -11), ctr + Vector2(11, 11), C_GRAY, 3.0)
-	draw_line(ctr + Vector2(11, -11), ctr + Vector2(-11, 11), C_GRAY, 3.0)
+	var d := TILE * 0.22
+	draw_line(ctr + Vector2(-d, -d), ctr + Vector2(d, d), C_GRAY, 2.5)
+	draw_line(ctr + Vector2(d, -d), ctr + Vector2(-d, d), C_GRAY, 2.5)
