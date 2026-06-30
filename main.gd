@@ -24,8 +24,33 @@ const C_BROWN := Color(0.54, 0.43, 0.23)
 const C_BLUE := Color(0.11, 0.23, 0.36)
 const C_GRAY := Color(0.6, 0.6, 0.6)
 const C_TEXT := Color(0.90, 0.86, 0.76)
-const C_WALL := Color(0.33, 0.30, 0.27)
-const C_HEART := Color(0.88, 0.25, 0.40)
+const C_WALL := Color(0.361, 0.322, 0.275)
+const C_WALL_HI := Color(0.471, 0.424, 0.361)
+const C_WALL_LO := Color(0.227, 0.196, 0.165)
+const C_PANEL := Color(0.172, 0.149, 0.125)
+
+# ---- Pixel sprites (8x8 maps + palette) ----
+const SPRITES := {
+	"enemy": ["........", "..GGGG..", ".GGGGGG.", "GGGGGGGG", "GWBGGWBG", "GGGGGGGG", "EGGGGGGE", ".EEEEEE."],
+	"trap": ["........", "m.m.m.m.", "mmmmmmmm", "MmMmMmMm", "MMMMMMMM", "oooooooo", "OoOoOoOo", "OOOOOOOO"],
+	"coin": ["..KKKK..", ".KgyygK.", "KgyyggsK", "KgygggsK", "KgygggsK", "KgggggsK", ".KgsssK.", "..KKKK.."],
+	"heart": [".rr..rr.", "rprrrrrr", "rrrrrrrr", "rrrrrrrr", ".rrrrrr.", "..rrrr..", "...rr...", "........"],
+	"chest": ["........", ".KKKKKK.", ".KwwwwK.", ".gggggg.", ".KwllwK.", ".KwllwK.", ".KKKKKK.", "........"],
+	"player": ["...dd...", "..dddd..", "..ffff..", "..fKfK..", ".buuuub.", ".uUUUUu.", "..u..u..", "..b..b.."],
+	"door": ["..DDDD..", ".DwwwwD.", "DwwwwwwD", "DwwwywwD", "DwwwwwwD", "DwwwwwwD", "DwwwwwwD", "DDDDDDDD"],
+	"stairs": ["........", "QQ......", "QqQQ....", "QqQqQQ..", "QqQqQqQQ", "QqQqQqQq", "QqQqQqQq", "QQQQQQQQ"],
+}
+var SPRITE_PAL := {
+	"K": Color8(43, 43, 43), "g": Color8(205, 161, 42), "y": Color8(244, 221, 132),
+	"s": Color8(143, 111, 20), "r": Color8(194, 49, 66), "p": Color8(236, 111, 128),
+	"G": Color8(90, 168, 108), "E": Color8(53, 96, 64), "B": Color8(22, 33, 15),
+	"W": Color8(255, 255, 255), "n": Color8(233, 227, 209), "m": Color8(194, 198, 202),
+	"M": Color8(123, 129, 134), "o": Color8(111, 86, 56), "O": Color8(84, 64, 31),
+	"w": Color8(154, 101, 49), "l": Color8(36, 26, 14), "d": Color8(58, 42, 26),
+	"f": Color8(227, 180, 140), "u": Color8(46, 90, 140), "U": Color8(29, 58, 92),
+	"b": Color8(107, 74, 42), "D": Color8(74, 51, 32), "q": Color8(184, 176, 160),
+	"Q": Color8(106, 98, 88),
+}
 
 # ---- Game state ----
 var player := {}
@@ -108,8 +133,31 @@ func _make_button(parent: Control, text: String, pos: Vector2, sz: Vector2) -> B
 	b.position = pos
 	b.size = sz
 	b.add_theme_font_size_override("font_size", 32)
+	_style_button(b)
 	parent.add_child(b)
 	return b
+
+
+func _style_button(b: Button) -> void:
+	var sb := StyleBoxFlat.new()
+	sb.bg_color = Color8(58, 44, 30)
+	sb.set_border_width_all(3)
+	sb.border_color = Color8(201, 162, 39)
+	sb.set_corner_radius_all(4)
+	var hover: StyleBoxFlat = sb.duplicate()
+	hover.bg_color = Color8(82, 62, 40)
+	var press: StyleBoxFlat = sb.duplicate()
+	press.bg_color = Color8(40, 30, 20)
+	var dis: StyleBoxFlat = sb.duplicate()
+	dis.bg_color = Color8(48, 42, 36)
+	dis.border_color = Color8(96, 86, 60)
+	b.add_theme_stylebox_override("normal", sb)
+	b.add_theme_stylebox_override("hover", hover)
+	b.add_theme_stylebox_override("pressed", press)
+	b.add_theme_stylebox_override("disabled", dis)
+	b.add_theme_color_override("font_color", Color8(244, 221, 132))
+	b.add_theme_color_override("font_hover_color", Color8(255, 238, 160))
+	b.add_theme_color_override("font_disabled_color", Color8(140, 128, 104))
 
 
 # =====================================================================
@@ -544,19 +592,58 @@ func cell_center(c: Vector2i) -> Vector2:
 	return Vector2(c.x * TILE + TILE / 2.0, GRID_TOP + c.y * TILE + TILE / 2.0)
 
 
+func _draw_sprite(sprite_name: String, ctr: Vector2) -> void:
+	var map: Array = SPRITES[sprite_name]
+	var rows := map.size()
+	var cols: int = map[0].length()
+	var px := TILE / float(cols)
+	var ox := ctr.x - cols * px / 2.0
+	var oy := ctr.y - rows * px / 2.0
+	for y in rows:
+		var row: String = map[y]
+		for x in cols:
+			var ch := row[x]
+			if SPRITE_PAL.has(ch):
+				draw_rect(Rect2(ox + x * px, oy + y * px, px + 0.7, px + 0.7), SPRITE_PAL[ch], true)
+
+
 func _draw() -> void:
-	# paper background of the play field
+	var grid_bottom := GRID_TOP + ROWS * TILE
+
+	# framing panels (top + bottom) with gold trim
+	draw_rect(Rect2(0, 0, COLS * TILE, GRID_TOP), C_PANEL, true)
+	draw_rect(Rect2(0, grid_bottom, COLS * TILE, 460), C_PANEL, true)
+
+	# parchment play field
 	draw_rect(Rect2(0, GRID_TOP, COLS * TILE, ROWS * TILE), C_PAPER, true)
 
 	# grid lines
 	for i in range(COLS + 1):
-		draw_line(Vector2(i * TILE, GRID_TOP), Vector2(i * TILE, GRID_TOP + ROWS * TILE), C_LINE, 1.0)
+		draw_line(Vector2(i * TILE, GRID_TOP), Vector2(i * TILE, grid_bottom), C_LINE, 1.0)
 	for j in range(ROWS + 1):
 		draw_line(Vector2(0, GRID_TOP + j * TILE), Vector2(COLS * TILE, GRID_TOP + j * TILE), C_LINE, 1.0)
 
-	# walls (solid blocks — fill whole cell so adjacent walls merge seamlessly)
+	# gold trim around the field
+	draw_rect(Rect2(0, GRID_TOP - 3, COLS * TILE, 3), C_GOLD, true)
+	draw_rect(Rect2(0, grid_bottom, COLS * TILE, 3), C_GOLD, true)
+
+	# walls — stone blocks, beveled only on the outer edge of each wall mass
 	for w in walls:
-		draw_rect(Rect2(w.x * TILE, GRID_TOP + w.y * TILE, TILE, TILE), C_WALL, true)
+		var wx: float = w.x * TILE
+		var wy: float = GRID_TOP + w.y * TILE
+		draw_rect(Rect2(wx, wy, TILE, TILE), C_WALL, true)
+		if not is_wall(w + Vector2i(0, -1)):
+			draw_rect(Rect2(wx, wy, TILE, 3), C_WALL_HI, true)
+		if not is_wall(w + Vector2i(-1, 0)):
+			draw_rect(Rect2(wx, wy, 3, TILE), C_WALL_HI, true)
+		if not is_wall(w + Vector2i(0, 1)):
+			draw_rect(Rect2(wx, wy + TILE - 3, TILE, 3), C_WALL_LO, true)
+		if not is_wall(w + Vector2i(1, 0)):
+			draw_rect(Rect2(wx + TILE - 3, wy, 3, TILE), C_WALL_LO, true)
+
+	# entrance (stairs) + exit (door)
+	_draw_sprite("stairs", cell_center(entrance_cell))
+	_draw_sprite("door", cell_center(exit_cell))
 
 	# travelled pencil line
 	if path.size() >= 2:
@@ -565,71 +652,31 @@ func _draw() -> void:
 			pts.append(cell_center(c))
 		draw_polyline(pts, C_INK, 3.0, true)
 
-	# entities
+	# entities (pixel sprites)
 	for e in entities:
 		var ctr := cell_center(e.pos)
 		if not e.alive:
 			_draw_dead(ctr)
-			continue
-		match e.type:
-			"enemy":
-				draw_circle(ctr, TILE * 0.30, C_INK)
-				draw_circle(ctr, TILE * 0.24, C_RED)
-			"trap":
-				var t := TILE * 0.28
-				var tp := PackedVector2Array([
-					ctr + Vector2(0, -t), ctr + Vector2(t, t * 0.85), ctr + Vector2(-t, t * 0.85)])
-				draw_colored_polygon(tp, C_BROWN)
-			"coin":
-				draw_circle(ctr, TILE * 0.22, C_GOLD)
-				draw_arc(ctr, TILE * 0.22, 0, TAU, 18, C_INK, 1.5)
-			"chest":
-				var hw := TILE * 0.40
-				var hh := TILE * 0.32
-				draw_rect(Rect2(ctr.x - hw, ctr.y - hh, hw * 2, hh * 2), C_GOLD, true)
-				draw_rect(Rect2(ctr.x - hw, ctr.y - hh, hw * 2, hh * 2), C_INK, false, 1.5)
-				draw_line(ctr + Vector2(-hw, -hh * 0.25), ctr + Vector2(hw, -hh * 0.25), C_INK, 1.2)
-			"heart":
-				_draw_heart(ctr)
-
-	# entrance + exit
-	draw_rect(Rect2(entrance_cell.x * TILE + 2, GRID_TOP + entrance_cell.y * TILE + 2, TILE - 4, TILE - 4), C_GRAY, false, 2.0)
-	var ec := cell_center(exit_cell)
-	var ew := TILE * 0.30
-	var eh := TILE * 0.40
-	draw_rect(Rect2(ec.x - ew, ec.y - eh, ew * 2, eh * 2), C_GREEN, true)
-	draw_circle(ec + Vector2(ew * 0.5, 0), TILE * 0.07, C_PAPER)
+		else:
+			_draw_sprite(e.type, ctr)
 
 	# movement options (after a roll) — show the full route incl. turns
 	var pc_start := cell_center(player.pos)
 	var opt_r := TILE * 0.40
 	for opt in options:
 		var op_path: Array = option_paths.get(opt, [])
-		var pts := PackedVector2Array()
-		pts.append(pc_start)
+		var pts2 := PackedVector2Array()
+		pts2.append(pc_start)
 		for c in op_path:
-			pts.append(cell_center(c))
-		if pts.size() >= 2:
-			draw_polyline(pts, Color(0.29, 0.49, 0.35, 0.5), 2.0, true)
+			pts2.append(cell_center(c))
+		if pts2.size() >= 2:
+			draw_polyline(pts2, Color(0.29, 0.49, 0.35, 0.5), 2.0, true)
 		var oc := cell_center(opt)
 		draw_circle(oc, opt_r, Color(0.29, 0.49, 0.35, 0.30))
 		draw_arc(oc, opt_r, 0, TAU, 22, C_GREEN, 2.0)
 
-	# player
-	var pc := cell_center(player.pos)
-	draw_circle(pc, TILE * 0.34, C_INK)
-	draw_circle(pc, TILE * 0.27, C_BLUE)
-
-
-func _draw_heart(ctr: Vector2) -> void:
-	var s := TILE * 0.32
-	draw_circle(ctr + Vector2(-s * 0.42, -s * 0.18), s * 0.42, C_HEART)
-	draw_circle(ctr + Vector2(s * 0.42, -s * 0.18), s * 0.42, C_HEART)
-	var tri := PackedVector2Array([
-		ctr + Vector2(-s * 0.78, -s * 0.02),
-		ctr + Vector2(s * 0.78, -s * 0.02),
-		ctr + Vector2(0, s * 0.72)])
-	draw_colored_polygon(tri, C_HEART)
+	# player (hero sprite)
+	_draw_sprite("player", cell_center(player.pos))
 
 
 func _draw_dead(ctr: Vector2) -> void:
