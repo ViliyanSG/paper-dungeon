@@ -29,6 +29,8 @@ const C_TEXT := Color(0.90, 0.86, 0.76)
 var player := {}
 var current_n := 0
 var diagonal := false
+var steps_remaining := 0
+var last_dir := Vector2i.ZERO
 var options: Array[Vector2i] = []
 var awaiting_move := false
 var path: Array[Vector2i] = []
@@ -114,6 +116,8 @@ func new_level() -> void:
 	player = {"pos": Vector2i(0, 0), "hp": 10, "max_hp": 10, "atk": 3, "gold": 0}
 	current_n = 0
 	diagonal = false
+	steps_remaining = 0
+	last_dir = Vector2i.ZERO
 	options = []
 	awaiting_move = false
 	path = [Vector2i(0, 0)]
@@ -174,17 +178,18 @@ func _on_roll() -> void:
 	current_n = 1 + randi() % 6
 	diagonal = (current_n % 2) == 1
 	spinning = false
+	steps_remaining = current_n
+	last_dir = Vector2i.ZERO
 	_compute_options()
 
 	var mode_txt := "диагонал" if diagonal else "право"
-	roll_result_label.text = "%d\n%s" % [current_n, mode_txt]
-
 	if options.is_empty():
 		add_log("Няма накъде. Хвърли пак.")
 		roll_button.disabled = false
 	else:
 		awaiting_move = true
 		add_log("Хвърли %d (%s). Избери накъде." % [current_n, mode_txt])
+	_update_roll_label()
 	queue_redraw()
 
 
@@ -192,7 +197,9 @@ func _compute_options() -> void:
 	options = []
 	var dirs := DIAG_DIRS if diagonal else ORTHO_DIRS
 	for d in dirs:
-		var k := _max_steps(player.pos, d, current_n)
+		if d == -last_dir:
+			continue  # can't turn back the way you came
+		var k := _max_steps(player.pos, d, steps_remaining)
 		if k >= 1:
 			options.append(player.pos + d * k)
 
@@ -234,11 +241,10 @@ func _unhandled_input(event: InputEvent) -> void:
 
 func _do_move(target: Vector2i) -> void:
 	var d := Vector2i(signi(target.x - player.pos.x), signi(target.y - player.pos.y))
-	var steps := maxi(absi(target.x - player.pos.x), absi(target.y - player.pos.y))
-	awaiting_move = false
+	var seg := maxi(absi(target.x - player.pos.x), absi(target.y - player.pos.y))
 	options = []
 
-	for i in steps:
+	for i in seg:
 		var cell: Vector2i = player.pos + d
 		player.pos = cell
 		path.append(cell)
@@ -246,10 +252,40 @@ func _do_move(target: Vector2i) -> void:
 		if game_over:
 			break
 
+	steps_remaining -= seg
+	last_dir = d
 	update_hud()
-	queue_redraw()
-	if not game_over:
+
+	if game_over:
+		awaiting_move = false
+		queue_redraw()
+		return
+
+	if steps_remaining <= 0:
+		# used all steps
+		awaiting_move = false
 		roll_button.disabled = false
+	else:
+		# hit a wall with steps left -> must turn
+		_compute_options()
+		if options.is_empty():
+			awaiting_move = false
+			roll_button.disabled = false
+			add_log("Няма накъде да завиеш. Ходът свърши.")
+		else:
+			awaiting_move = true
+			add_log("Удари стена! Завий — остават %d." % steps_remaining)
+
+	_update_roll_label()
+	queue_redraw()
+
+
+func _update_roll_label() -> void:
+	var mode_txt := "диагонал" if diagonal else "право"
+	if awaiting_move and last_dir != Vector2i.ZERO:
+		roll_result_label.text = "Остават %d\n%s" % [steps_remaining, mode_txt]
+	else:
+		roll_result_label.text = "%d\n%s" % [current_n, mode_txt]
 
 
 func _resolve_tile(cell: Vector2i) -> void:
