@@ -37,6 +37,7 @@ var awaiting_move := false
 var path: Array[Vector2i] = []
 var entities: Array = []
 var walls: Dictionary = {}
+var entrance_cell := Vector2i(0, 0)
 var exit_cell := Vector2i(COLS - 1, ROWS - 1)
 var spinning := false
 var game_over := false
@@ -115,15 +116,20 @@ func _make_button(parent: Control, text: String, pos: Vector2, sz: Vector2) -> B
 #  Level setup
 # =====================================================================
 func new_level() -> void:
-	player = {"pos": Vector2i(0, 0), "hp": 10, "max_hp": 10, "atk": 3, "gold": 0}
+	# entrance and exit in two different quarters of the board
+	var q_start := randi() % 4
+	var q_exit := (q_start + 1 + randi() % 3) % 4
+	entrance_cell = _rand_in_quarter(q_start)
+	exit_cell = _rand_in_quarter(q_exit)
+
+	player = {"pos": entrance_cell, "hp": 10, "max_hp": 10, "atk": 3, "gold": 0}
 	current_n = 0
 	diagonal = false
 	options = []
 	option_paths = {}
 	awaiting_move = false
-	path = [Vector2i(0, 0)]
+	path = [entrance_cell]
 	entities = []
-	exit_cell = Vector2i(COLS - 1, ROWS - 1)
 	spinning = false
 	game_over = false
 	log_lines = []
@@ -135,6 +141,15 @@ func new_level() -> void:
 	roll_result_label.text = ""
 	update_hud()
 	queue_redraw()
+
+
+# Random cell inside quarter q (0=top-left, 1=top-right, 2=bottom-left, 3=bottom-right).
+func _rand_in_quarter(q: int) -> Vector2i:
+	var hx := COLS / 2
+	var hy := ROWS / 2
+	var x := (q % 2) * hx + randi() % hx
+	var y := (q / 2) * hy + randi() % hy
+	return Vector2i(x, y)
 
 
 func _place(type: String, x: int, y: int, extra: Dictionary = {}) -> void:
@@ -151,7 +166,7 @@ func is_wall(cell: Vector2i) -> bool:
 # Generate random walls, then scatter entities on free reachable cells.
 # Regenerates until the exit is reachable from the entrance.
 func _generate_level() -> void:
-	var entrance := Vector2i(0, 0)
+	var entrance := entrance_cell
 	var target := int(COLS * ROWS * 0.15)
 	for attempt in 30:
 		walls = {}
@@ -206,7 +221,7 @@ func _make_wall() -> Array:
 func _wall_cell_ok(cell: Vector2i, cells: Dictionary) -> bool:
 	if cell.x < 0 or cell.y < 0 or cell.x >= COLS or cell.y >= ROWS:
 		return false
-	if cell == Vector2i(0, 0) or cell == exit_cell:
+	if cell == entrance_cell or cell == exit_cell:
 		return false
 	if walls.has(cell) or cells.has(cell):
 		return false
@@ -274,7 +289,7 @@ func _populate_entities(reach: Dictionary) -> void:
 	entities = []
 	var free: Array = []
 	for c in reach:
-		if c == Vector2i(0, 0) or c == exit_cell:
+		if c == entrance_cell or c == exit_cell:
 			continue
 		free.append(c)
 	free.shuffle()
@@ -572,7 +587,7 @@ func _draw() -> void:
 				_draw_heart(ctr)
 
 	# entrance + exit
-	draw_rect(Rect2(2, GRID_TOP + 2, TILE - 4, TILE - 4), C_GRAY, false, 2.0)
+	draw_rect(Rect2(entrance_cell.x * TILE + 2, GRID_TOP + entrance_cell.y * TILE + 2, TILE - 4, TILE - 4), C_GRAY, false, 2.0)
 	var ec := cell_center(exit_cell)
 	var ew := TILE * 0.30
 	var eh := TILE * 0.40
