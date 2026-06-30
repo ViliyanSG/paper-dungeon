@@ -54,7 +54,15 @@ var SPRITE_PAL := {
 	"Q": Color8(106, 98, 88),
 }
 
+enum S { MENU, SLOTS, PLAYING }
+
 # ---- Game state ----
+var state := S.MENU
+var current_slot := -1
+var level := 1
+var pending_advance := false
+var pending_respawn := false
+
 var player := {}
 var current_n := 0
 var diagonal := false
@@ -71,18 +79,23 @@ var game_over := false
 var log_lines: Array[String] = []
 
 # ---- UI nodes ----
+var game_ui: Control
+var menu_ui: Control
+var slots_ui: Control
 var hp_label: Label
 var gold_label: Label
+var level_label: Label
 var roll_button: Button
 var roll_result_label: Label
 var reset_button: Button
 var log_label: Label
+var slot_buttons: Array = []
 
 
 func _ready() -> void:
 	randomize()
 	_build_ui()
-	new_level()
+	_show_menu()
 
 
 # =====================================================================
@@ -91,32 +104,63 @@ func _ready() -> void:
 func _build_ui() -> void:
 	var layer := CanvasLayer.new()
 	add_child(layer)
-	var root := Control.new()
-	root.set_anchors_preset(Control.PRESET_FULL_RECT)
-	root.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	layer.add_child(root)
 
-	# top bar
-	hp_label = _make_label(root, Vector2(20, 26), Vector2(340, 50), 36, C_RED)
-	gold_label = _make_label(root, Vector2(360, 26), Vector2(340, 50), 36, C_GOLD)
+	# ---- Game screen ----
+	game_ui = Control.new()
+	game_ui.set_anchors_preset(Control.PRESET_FULL_RECT)
+	game_ui.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	layer.add_child(game_ui)
+
+	hp_label = _make_label(game_ui, Vector2(20, 26), Vector2(260, 50), 32, C_RED)
+	level_label = _make_label(game_ui, Vector2(280, 26), Vector2(160, 50), 30, C_TEXT)
+	level_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	gold_label = _make_label(game_ui, Vector2(440, 26), Vector2(260, 50), 32, C_GOLD)
 	gold_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 
-	# bottom controls
-	roll_button = _make_button(root, "Хвърли зар", Vector2(20, 870), Vector2(430, 120))
+	roll_button = _make_button(game_ui, "Хвърли зар", Vector2(20, 870), Vector2(430, 120))
 	roll_button.pressed.connect(_on_roll)
 
-	roll_result_label = _make_label(root, Vector2(470, 870), Vector2(230, 120), 34, C_GOLD)
+	roll_result_label = _make_label(game_ui, Vector2(470, 870), Vector2(230, 120), 34, C_GOLD)
 	roll_result_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	roll_result_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	roll_result_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 
-	reset_button = _make_button(root, "Ново ниво", Vector2(470, 1010), Vector2(230, 70))
-	reset_button.add_theme_font_size_override("font_size", 22)
-	reset_button.pressed.connect(new_level)
+	reset_button = _make_button(game_ui, "Излез", Vector2(470, 1010), Vector2(230, 70))
+	reset_button.add_theme_font_size_override("font_size", 26)
+	reset_button.pressed.connect(_exit_to_menu)
 
-	log_label = _make_label(root, Vector2(20, 1100), Vector2(680, 170), 22, C_TEXT)
+	log_label = _make_label(game_ui, Vector2(20, 1100), Vector2(680, 170), 22, C_TEXT)
 	log_label.vertical_alignment = VERTICAL_ALIGNMENT_TOP
 	log_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+
+	# ---- Main menu screen ----
+	menu_ui = Control.new()
+	menu_ui.set_anchors_preset(Control.PRESET_FULL_RECT)
+	menu_ui.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	layer.add_child(menu_ui)
+	var title := _make_label(menu_ui, Vector2(40, 300), Vector2(640, 90), 58, C_GOLD)
+	title.text = "PAPER DUNGEON"
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	var play_btn := _make_button(menu_ui, "Играй", Vector2(210, 560), Vector2(300, 120))
+	play_btn.pressed.connect(_show_slots)
+
+	# ---- Slot select screen ----
+	slots_ui = Control.new()
+	slots_ui.set_anchors_preset(Control.PRESET_FULL_RECT)
+	slots_ui.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	layer.add_child(slots_ui)
+	var stitle := _make_label(slots_ui, Vector2(40, 200), Vector2(640, 70), 46, C_GOLD)
+	stitle.text = "Избери слот"
+	stitle.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	slot_buttons = []
+	for i in 3:
+		var sbtn := _make_button(slots_ui, "", Vector2(100, 340 + i * 160), Vector2(520, 130))
+		sbtn.add_theme_font_size_override("font_size", 26)
+		sbtn.pressed.connect(_on_slot_pressed.bind(i))
+		slot_buttons.append(sbtn)
+	var back_btn := _make_button(slots_ui, "Назад", Vector2(260, 900), Vector2(200, 80))
+	back_btn.add_theme_font_size_override("font_size", 26)
+	back_btn.pressed.connect(_show_menu)
 
 
 func _make_label(parent: Control, pos: Vector2, sz: Vector2, font_size: int, color: Color) -> Label:
@@ -163,6 +207,97 @@ func _style_button(b: Button) -> void:
 
 
 # =====================================================================
+#  Screens / navigation
+# =====================================================================
+func _show_menu() -> void:
+	state = S.MENU
+	menu_ui.visible = true
+	slots_ui.visible = false
+	game_ui.visible = false
+	queue_redraw()
+
+
+func _show_slots() -> void:
+	_refresh_slots()
+	state = S.SLOTS
+	menu_ui.visible = false
+	slots_ui.visible = true
+	game_ui.visible = false
+	queue_redraw()
+
+
+func _show_game() -> void:
+	state = S.PLAYING
+	menu_ui.visible = false
+	slots_ui.visible = false
+	game_ui.visible = true
+	queue_redraw()
+
+
+func _on_slot_pressed(i: int) -> void:
+	current_slot = i
+	_begin_run(_load_slot(i))
+	_show_game()
+
+
+func _exit_to_menu() -> void:
+	if current_slot >= 0:
+		_save_slot(current_slot, {
+			"gold": player.gold, "hp": player.hp, "max_hp": player.max_hp, "level": level})
+	_show_menu()
+
+
+# =====================================================================
+#  Local save slots (user://)
+# =====================================================================
+func _slot_path(i: int) -> String:
+	return "user://slot_%d.save" % i
+
+
+func _save_slot(i: int, data: Dictionary) -> void:
+	var f := FileAccess.open(_slot_path(i), FileAccess.WRITE)
+	if f:
+		f.store_string(JSON.stringify(data))
+		f.close()
+
+
+func _load_slot(i: int):
+	var p := _slot_path(i)
+	if not FileAccess.file_exists(p):
+		return null
+	var f := FileAccess.open(p, FileAccess.READ)
+	if f == null:
+		return null
+	var txt := f.get_as_text()
+	f.close()
+	return JSON.parse_string(txt)
+
+
+func _refresh_slots() -> void:
+	for i in 3:
+		var d = _load_slot(i)
+		if d == null:
+			slot_buttons[i].text = "Слот %d — празен" % (i + 1)
+		else:
+			slot_buttons[i].text = "Слот %d — ниво %d · GP %d" % [i + 1, int(d.get("level", 1)), int(d.get("gold", 0))]
+
+
+func _begin_run(data) -> void:
+	if data == null:
+		player = {"pos": Vector2i(0, 0), "hp": 10, "max_hp": 10, "atk": 3, "gold": 0}
+		level = 1
+	else:
+		player = {
+			"pos": Vector2i(0, 0),
+			"hp": int(data.get("hp", 10)),
+			"max_hp": int(data.get("max_hp", 10)),
+			"atk": 3,
+			"gold": int(data.get("gold", 0))}
+		level = int(data.get("level", 1))
+	new_level()
+
+
+# =====================================================================
 #  Level setup
 # =====================================================================
 func new_level() -> void:
@@ -172,7 +307,8 @@ func new_level() -> void:
 	entrance_cell = _rand_in_quarter(q_start)
 	exit_cell = _rand_in_quarter(q_exit)
 
-	player = {"pos": entrance_cell, "hp": 10, "max_hp": 10, "atk": 3, "gold": 0}
+	# keep hero stats (hp / max_hp / gold) — only reset per-level state
+	player["pos"] = entrance_cell
 	current_n = 0
 	diagonal = false
 	options = []
@@ -182,11 +318,13 @@ func new_level() -> void:
 	entities = []
 	spinning = false
 	game_over = false
+	pending_advance = false
+	pending_respawn = false
 	log_lines = []
 
 	_generate_level()
 
-	add_log("Ново подземие. Хвърли зар за да започнеш.")
+	add_log("Ниво %d. Хвърли зар за да започнеш." % level)
 	roll_button.disabled = false
 	roll_result_label.text = ""
 	update_hud()
@@ -462,6 +600,8 @@ func _max_steps(from: Vector2i, d: Vector2i, n: int) -> int:
 #  Input — pick a destination option
 # =====================================================================
 func _unhandled_input(event: InputEvent) -> void:
+	if state != S.PLAYING:
+		return
 	var sp = null
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
 		sp = event.position
@@ -498,6 +638,22 @@ func _do_move(target: Vector2i) -> void:
 			break
 
 	update_hud()
+
+	if pending_advance:
+		pending_advance = false
+		level += 1
+		player.hp = player.max_hp
+		new_level()
+		add_log("Стигна изхода! Ниво %d започва." % level)
+		return
+
+	if pending_respawn:
+		pending_respawn = false
+		player.hp = player.max_hp
+		new_level()
+		add_log("Загина! Нивото започва наново.")
+		return
+
 	if not game_over:
 		roll_button.disabled = false
 		var steps := full_path.size()
@@ -569,15 +725,13 @@ func _check_death() -> void:
 		player.hp = 0
 		game_over = true
 		awaiting_move = false
-		add_log("Загина. Натисни „Ново ниво\".")
-		roll_button.disabled = true
+		pending_respawn = true
 
 
 func _win() -> void:
 	game_over = true
 	awaiting_move = false
-	add_log("Победа! Стигна изхода със %d GP." % player.gold)
-	roll_button.disabled = true
+	pending_advance = true
 
 
 # =====================================================================
@@ -586,6 +740,7 @@ func _win() -> void:
 func update_hud() -> void:
 	hp_label.text = "HP %d/%d" % [player.hp, player.max_hp]
 	gold_label.text = "GP %d" % player.gold
+	level_label.text = "Ниво %d" % level
 
 
 func add_log(msg: String) -> void:
@@ -615,6 +770,8 @@ func _draw_sprite(sprite_name: String, ctr: Vector2) -> void:
 
 
 func _draw() -> void:
+	if state != S.PLAYING:
+		return
 	var grid_bottom := GRID_TOP + ROWS * TILE
 
 	# framing panels (top + bottom) with gold trim
