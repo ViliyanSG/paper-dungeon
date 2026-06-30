@@ -29,9 +29,8 @@ const C_TEXT := Color(0.90, 0.86, 0.76)
 var player := {}
 var current_n := 0
 var diagonal := false
-var steps_remaining := 0
-var last_dir := Vector2i.ZERO
 var options: Array[Vector2i] = []
+var option_paths: Dictionary = {}
 var awaiting_move := false
 var path: Array[Vector2i] = []
 var entities: Array = []
@@ -116,9 +115,8 @@ func new_level() -> void:
 	player = {"pos": Vector2i(0, 0), "hp": 10, "max_hp": 10, "atk": 3, "gold": 0}
 	current_n = 0
 	diagonal = false
-	steps_remaining = 0
-	last_dir = Vector2i.ZERO
 	options = []
+	option_paths = {}
 	awaiting_move = false
 	path = [Vector2i(0, 0)]
 	entities = []
@@ -178,8 +176,6 @@ func _on_roll() -> void:
 	current_n = 1 + randi() % 6
 	diagonal = (current_n % 2) == 1
 	spinning = false
-	steps_remaining = current_n
-	last_dir = Vector2i.ZERO
 	_compute_options()
 
 	var mode_txt := "диагонал" if diagonal else "право"
@@ -195,13 +191,42 @@ func _on_roll() -> void:
 
 func _compute_options() -> void:
 	options = []
+	option_paths = {}
+	_explore(player.pos, current_n, Vector2i.ZERO, [], true)
+	for cell in option_paths:
+		options.append(cell)
+
+
+# Explore every route of `steps` cells: slide straight until a wall, then turn
+# (never back the way we came) and spend the remaining steps. Each final cell
+# becomes a clickable option with its full bent path stored.
+func _explore(pos: Vector2i, steps: int, came_dir: Vector2i, acc: Array, is_root: bool) -> void:
 	var dirs := DIAG_DIRS if diagonal else ORTHO_DIRS
+	var advanced := false
 	for d in dirs:
-		if d == -last_dir:
+		if d == -came_dir:
 			continue  # can't turn back the way you came
-		var k := _max_steps(player.pos, d, steps_remaining)
-		if k >= 1:
-			options.append(player.pos + d * k)
+		var k := _max_steps(pos, d, steps)
+		if k < 1:
+			continue
+		advanced = true
+		var p := pos
+		var seg: Array = []
+		for i in k:
+			p = p + d
+			seg.append(p)
+		var rem := steps - k
+		if rem <= 0:
+			_add_option(p, acc + seg)        # used all steps
+		else:
+			_explore(p, rem, d, acc + seg, false)  # hit wall, turn and continue
+	if not advanced and not is_root:
+		_add_option(pos, acc)  # stuck against a wall, stop here
+
+
+func _add_option(cell: Vector2i, full_path: Array) -> void:
+	if not option_paths.has(cell):
+		option_paths[cell] = full_path
 
 
 func _max_steps(from: Vector2i, d: Vector2i, n: int) -> int:
@@ -240,52 +265,28 @@ func _unhandled_input(event: InputEvent) -> void:
 
 
 func _do_move(target: Vector2i) -> void:
-	var d := Vector2i(signi(target.x - player.pos.x), signi(target.y - player.pos.y))
-	var seg := maxi(absi(target.x - player.pos.x), absi(target.y - player.pos.y))
+	var full_path: Array = option_paths.get(target, [])
 	options = []
+	option_paths = {}
+	awaiting_move = false
 
-	for i in seg:
-		var cell: Vector2i = player.pos + d
+	for cell in full_path:
 		player.pos = cell
 		path.append(cell)
 		_resolve_tile(cell)
 		if game_over:
 			break
 
-	steps_remaining -= seg
-	last_dir = d
 	update_hud()
-
-	if game_over:
-		awaiting_move = false
-		queue_redraw()
-		return
-
-	if steps_remaining <= 0:
-		# used all steps
-		awaiting_move = false
+	if not game_over:
 		roll_button.disabled = false
-	else:
-		# hit a wall with steps left -> must turn
-		_compute_options()
-		if options.is_empty():
-			awaiting_move = false
-			roll_button.disabled = false
-			add_log("Няма накъде да завиеш. Ходът свърши.")
-		else:
-			awaiting_move = true
-			add_log("Удари стена! Завий — остават %d." % steps_remaining)
-
 	_update_roll_label()
 	queue_redraw()
 
 
 func _update_roll_label() -> void:
 	var mode_txt := "диагонал" if diagonal else "право"
-	if awaiting_move and last_dir != Vector2i.ZERO:
-		roll_result_label.text = "Остават %d\n%s" % [steps_remaining, mode_txt]
-	else:
-		roll_result_label.text = "%d\n%s" % [current_n, mode_txt]
+	roll_result_label.text = "%d\n%s" % [current_n, mode_txt]
 
 
 func _resolve_tile(cell: Vector2i) -> void:
@@ -411,11 +412,17 @@ func _draw() -> void:
 	draw_rect(Rect2(ec.x - 16, ec.y - 20, 32, 40), C_GREEN, true)
 	draw_circle(ec + Vector2(9, 0), 3, C_PAPER)
 
-	# movement options (after a roll)
+	# movement options (after a roll) — show the full route incl. turns
 	var pc_start := cell_center(player.pos)
 	for opt in options:
+		var op_path: Array = option_paths.get(opt, [])
+		var pts := PackedVector2Array()
+		pts.append(pc_start)
+		for c in op_path:
+			pts.append(cell_center(c))
+		if pts.size() >= 2:
+			draw_polyline(pts, Color(0.29, 0.49, 0.35, 0.5), 2.5, true)
 		var oc := cell_center(opt)
-		draw_line(pc_start, oc, Color(0.29, 0.49, 0.35, 0.55), 2.0)
 		draw_circle(oc, 22, Color(0.29, 0.49, 0.35, 0.30))
 		draw_arc(oc, 22, 0, TAU, 24, C_GREEN, 2.5)
 
