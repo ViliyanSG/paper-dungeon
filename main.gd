@@ -24,6 +24,7 @@ const C_BROWN := Color(0.54, 0.43, 0.23)
 const C_BLUE := Color(0.11, 0.23, 0.36)
 const C_GRAY := Color(0.6, 0.6, 0.6)
 const C_TEXT := Color(0.90, 0.86, 0.76)
+const C_WALL := Color(0.33, 0.30, 0.27)
 
 # ---- Game state ----
 var player := {}
@@ -34,6 +35,7 @@ var option_paths: Dictionary = {}
 var awaiting_move := false
 var path: Array[Vector2i] = []
 var entities: Array = []
+var walls: Dictionary = {}
 var exit_cell := Vector2i(COLS - 1, ROWS - 1)
 var spinning := false
 var game_over := false
@@ -125,24 +127,7 @@ func new_level() -> void:
 	game_over = false
 	log_lines = []
 
-	# Hand-designed layout (spread across the 20x20 board)
-	_place("enemy", 4, 2)
-	_place("enemy", 11, 5)
-	_place("enemy", 16, 3)
-	_place("enemy", 7, 13)
-	_place("enemy", 17, 16)
-	_place("trap", 3, 8)
-	_place("trap", 12, 10)
-	_place("trap", 6, 17)
-	_place("trap", 15, 8)
-	_place("coin", 8, 3)
-	_place("coin", 2, 14)
-	_place("coin", 13, 15)
-	_place("coin", 18, 7)
-	_place("coin", 5, 5)
-	_place("chest", 15, 12)
-	_place("chest", 9, 18)
-	_place("chest", 11, 1)
+	_generate_level()
 
 	add_log("Ново подземие. Хвърли зар за да започнеш.")
 	roll_button.disabled = false
@@ -156,6 +141,73 @@ func _place(type: String, x: int, y: int, extra: Dictionary = {}) -> void:
 	for k in extra:
 		e[k] = extra[k]
 	entities.append(e)
+
+
+func is_wall(cell: Vector2i) -> bool:
+	return walls.has(cell)
+
+
+# Generate random walls, then scatter entities on free reachable cells.
+# Regenerates until the exit is reachable from the entrance.
+func _generate_level() -> void:
+	var entrance := Vector2i(0, 0)
+	for attempt in 25:
+		walls = {}
+		for y in ROWS:
+			for x in COLS:
+				var c := Vector2i(x, y)
+				if c == entrance or c == exit_cell:
+					continue
+				if randf() < 0.14:
+					walls[c] = true
+		var reach := _reachable(entrance)
+		if reach.has(exit_cell):
+			_populate_entities(reach)
+			return
+	# fallback: no walls at all
+	walls = {}
+	_populate_entities(_reachable(entrance))
+
+
+# Cells reachable by straight slides (1..6 in any of 8 directions), transitively.
+func _reachable(start: Vector2i) -> Dictionary:
+	var seen := {start: true}
+	var stack: Array = [start]
+	var dirs: Array = ORTHO_DIRS + DIAG_DIRS
+	while not stack.is_empty():
+		var cur: Vector2i = stack.pop_back()
+		for d in dirs:
+			var p: Vector2i = cur
+			for step in 6:
+				var np: Vector2i = p + d
+				if np.x < 0 or np.y < 0 or np.x >= COLS or np.y >= ROWS:
+					break
+				if is_wall(np):
+					break
+				p = np
+				if not seen.has(p):
+					seen[p] = true
+					stack.append(p)
+	return seen
+
+
+func _populate_entities(reach: Dictionary) -> void:
+	entities = []
+	var free: Array = []
+	for c in reach:
+		if c == Vector2i(0, 0) or c == exit_cell:
+			continue
+		free.append(c)
+	free.shuffle()
+
+	var idx := 0
+	var counts := {"enemy": 6, "trap": 5, "coin": 8, "chest": 3}
+	for etype in counts:
+		for i in counts[etype]:
+			if idx >= free.size():
+				return
+			_place(etype, free[idx].x, free[idx].y)
+			idx += 1
 
 
 func entity_at(cell: Vector2i):
@@ -238,16 +290,17 @@ func _add_option(cell: Vector2i, full_path: Array) -> void:
 
 
 func _max_steps(from: Vector2i, d: Vector2i, n: int) -> int:
-	var limit := n
-	if d.x > 0:
-		limit = mini(limit, (COLS - 1) - from.x)
-	elif d.x < 0:
-		limit = mini(limit, from.x)
-	if d.y > 0:
-		limit = mini(limit, (ROWS - 1) - from.y)
-	elif d.y < 0:
-		limit = mini(limit, from.y)
-	return limit
+	var k := 0
+	var p := from
+	for i in n:
+		var np: Vector2i = p + d
+		if np.x < 0 or np.y < 0 or np.x >= COLS or np.y >= ROWS:
+			break
+		if is_wall(np):
+			break  # walls block movement
+		p = np
+		k += 1
+	return k
 
 
 # =====================================================================
@@ -374,6 +427,10 @@ func _draw() -> void:
 		draw_line(Vector2(i * TILE, GRID_TOP), Vector2(i * TILE, GRID_TOP + ROWS * TILE), C_LINE, 1.0)
 	for j in range(ROWS + 1):
 		draw_line(Vector2(0, GRID_TOP + j * TILE), Vector2(COLS * TILE, GRID_TOP + j * TILE), C_LINE, 1.0)
+
+	# walls (solid blocks)
+	for w in walls:
+		draw_rect(Rect2(w.x * TILE + 1, GRID_TOP + w.y * TILE + 1, TILE - 2, TILE - 2), C_WALL, true)
 
 	# travelled pencil line
 	if path.size() >= 2:
