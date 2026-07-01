@@ -81,6 +81,8 @@ const STRINGS := {
 	"ui_roll": ["Roll die", "Хвърли зар", "Lancer le dé", "Würfeln"],
 	"ui_exit": ["Exit", "Излез", "Quitter", "Verlassen"],
 	"ui_language": ["Language", "Език", "Langue", "Sprache"],
+	"ui_music": ["Music", "Музика", "Musique", "Musik"],
+	"ui_sound": ["Sound", "Звук", "Son", "Ton"],
 	"hud_level": ["Level %d", "Ниво %d", "Niveau %d", "Level %d"],
 	"mode_diag": ["diagonal", "диагонал", "diagonale", "diagonal"],
 	"mode_straight": ["straight", "право", "droite", "gerade"],
@@ -164,6 +166,15 @@ var ability_button: Button
 var log_label: Label
 var slot_buttons: Array = []
 var del_buttons: Array = []
+# audio
+var music_player: AudioStreamPlayer
+var sfx_players: Array = []
+var sfx_idx := 0
+var sfx_bank: Dictionary = {}
+var music_on := true
+var sfx_on := true
+var music_btn: Button
+var sfx_btn: Button
 # static-text controls that get re-labelled on language change
 var play_btn: Button
 var settings_btn: Button
@@ -183,6 +194,7 @@ func _ready() -> void:
 	randomize()
 	_load_settings()
 	_build_ui()
+	_build_audio()
 	_apply_language()
 	_check_version_wipe()
 	_show_menu()
@@ -269,10 +281,10 @@ func _build_ui() -> void:
 	title.text = "PAPER DUNGEON"
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	play_btn = _make_button(menu_ui, "", Vector2(210, 520), Vector2(300, 110))
-	play_btn.pressed.connect(_show_slots)
+	play_btn.pressed.connect(func(): _sfx("button"); _show_slots())
 	settings_btn = _make_button(menu_ui, "", Vector2(210, 660), Vector2(300, 100))
 	settings_btn.add_theme_font_size_override("font_size", 28)
-	settings_btn.pressed.connect(_show_settings)
+	settings_btn.pressed.connect(func(): _sfx("button"); _show_settings())
 
 	# ---- Slot select screen ----
 	slots_ui = Control.new()
@@ -295,7 +307,7 @@ func _build_ui() -> void:
 		del_buttons.append(del)
 	slots_back = _make_button(slots_ui, "", Vector2(260, 900), Vector2(200, 80))
 	slots_back.add_theme_font_size_override("font_size", 26)
-	slots_back.pressed.connect(_show_menu)
+	slots_back.pressed.connect(func(): _sfx("button"); _show_menu())
 
 	# ---- Class select screen ----
 	class_ui = Control.new()
@@ -316,7 +328,7 @@ func _build_ui() -> void:
 	ranger_btn.pressed.connect(_choose_class.bind("ranger"))
 	class_back = _make_button(class_ui, "", Vector2(260, 770), Vector2(200, 80))
 	class_back.add_theme_font_size_override("font_size", 26)
-	class_back.pressed.connect(_show_slots)
+	class_back.pressed.connect(func(): _sfx("button"); _show_slots())
 
 	# ---- Settings screen ----
 	settings_ui = Control.new()
@@ -335,9 +347,15 @@ func _build_ui() -> void:
 		var lb := _make_button(settings_ui, lang_names[i], Vector2(90 + col * 290, 400 + row * 130), Vector2(270, 110))
 		lb.add_theme_font_size_override("font_size", 28)
 		lb.pressed.connect(_set_language.bind(LANGS[i]))
-	settings_back = _make_button(settings_ui, "", Vector2(260, 720), Vector2(200, 80))
+	music_btn = _make_button(settings_ui, "", Vector2(90, 680), Vector2(540, 90))
+	music_btn.add_theme_font_size_override("font_size", 28)
+	music_btn.pressed.connect(_toggle_music)
+	sfx_btn = _make_button(settings_ui, "", Vector2(90, 790), Vector2(540, 90))
+	sfx_btn.add_theme_font_size_override("font_size", 28)
+	sfx_btn.pressed.connect(_toggle_sfx)
+	settings_back = _make_button(settings_ui, "", Vector2(260, 910), Vector2(200, 80))
 	settings_back.add_theme_font_size_override("font_size", 26)
-	settings_back.pressed.connect(_show_menu)
+	settings_back.pressed.connect(func(): _sfx("button"); _show_menu())
 
 
 func _make_label(parent: Control, pos: Vector2, sz: Vector2, font_size: int, color: Color) -> Label:
@@ -431,6 +449,7 @@ func t(key: String) -> String:
 
 
 func _set_language(l: String) -> void:
+	_sfx("button")
 	locale = l
 	_save_settings()
 	_apply_language()
@@ -454,6 +473,7 @@ func _apply_language() -> void:
 	settings_back.text = t("ui_back")
 	roll_button.text = t("ui_roll")
 	reset_button.text = t("ui_exit")
+	_update_audio_buttons()
 	_refresh_slots()
 	if state == S.PLAYING:
 		update_hud()
@@ -464,15 +484,173 @@ func _load_settings() -> void:
 	var c := ConfigFile.new()
 	if c.load("user://settings.cfg") == OK:
 		locale = c.get_value("general", "locale", "en")
+		music_on = c.get_value("general", "music", true)
+		sfx_on = c.get_value("general", "sfx", true)
 
 
 func _save_settings() -> void:
 	var c := ConfigFile.new()
 	c.set_value("general", "locale", locale)
+	c.set_value("general", "music", music_on)
+	c.set_value("general", "sfx", sfx_on)
 	c.save("user://settings.cfg")
 
 
+func _toggle_music() -> void:
+	music_on = not music_on
+	_sfx("button")
+	_save_settings()
+	_play_music()
+	_update_audio_buttons()
+
+
+func _toggle_sfx() -> void:
+	sfx_on = not sfx_on
+	_sfx("button")
+	_save_settings()
+	_update_audio_buttons()
+
+
+func _update_audio_buttons() -> void:
+	if music_btn:
+		music_btn.text = t("ui_music") + ": " + ("On" if music_on else "Off")
+	if sfx_btn:
+		sfx_btn.text = t("ui_sound") + ": " + ("On" if sfx_on else "Off")
+
+
+# =====================================================================
+#  Audio — procedurally generated 8-bit SFX + chill music loop
+# =====================================================================
+const SR := 22050
+
+func _osc(freq: float, t: float, wave: String) -> float:
+	var phase := freq * t
+	match wave:
+		"square":
+			return 1.0 if fmod(phase, 1.0) < 0.5 else -1.0
+		"tri":
+			var p := fmod(phase, 1.0)
+			return 4.0 * absf(p - 0.5) - 1.0
+		"saw":
+			return 2.0 * fmod(phase, 1.0) - 1.0
+		"sine":
+			return sin(phase * TAU)
+		"noise":
+			return randf() * 2.0 - 1.0
+	return 0.0
+
+
+func _note(freq: float, dur: float, wave: String, vol: float) -> PackedFloat32Array:
+	var n := int(dur * SR)
+	var out := PackedFloat32Array()
+	out.resize(n)
+	var atk := maxi(1, int(0.008 * SR))
+	var rel := maxi(1, int(0.05 * SR))
+	for i in n:
+		var t := float(i) / SR
+		var env := 1.0
+		if i < atk:
+			env = float(i) / atk
+		elif i > n - rel:
+			env = float(n - i) / rel
+		out[i] = _osc(freq, t, wave) * vol * env
+	return out
+
+
+func _seq(notes: Array) -> PackedFloat32Array:
+	var out := PackedFloat32Array()
+	for nt in notes:
+		out.append_array(_note(nt[0], nt[1], nt[2], nt[3]))
+	return out
+
+
+func _make_wav(samples: PackedFloat32Array, loop := false) -> AudioStreamWAV:
+	var w := AudioStreamWAV.new()
+	w.format = AudioStreamWAV.FORMAT_16_BITS
+	w.mix_rate = SR
+	w.stereo = false
+	var bytes := PackedByteArray()
+	bytes.resize(samples.size() * 2)
+	for i in samples.size():
+		bytes.encode_s16(i * 2, int(clampf(samples[i], -1.0, 1.0) * 32767.0))
+	w.data = bytes
+	if loop:
+		w.loop_mode = AudioStreamWAV.LOOP_FORWARD
+		w.loop_begin = 0
+		w.loop_end = samples.size()
+	return w
+
+
+func _build_audio() -> void:
+	music_player = AudioStreamPlayer.new()
+	add_child(music_player)
+	for i in 5:
+		var p := AudioStreamPlayer.new()
+		add_child(p)
+		sfx_players.append(p)
+
+	sfx_bank["coin"] = _make_wav(_seq([[880, 0.05, "square", 0.3], [1320, 0.09, "square", 0.28]]))
+	sfx_bank["chest"] = _make_wav(_seq([[660, 0.06, "square", 0.28], [880, 0.06, "square", 0.28], [1174, 0.12, "square", 0.26]]))
+	sfx_bank["heart"] = _make_wav(_seq([[523, 0.08, "tri", 0.32], [784, 0.13, "tri", 0.28]]))
+	sfx_bank["trap"] = _make_wav(_seq([[300, 0.06, "square", 0.28], [200, 0.08, "square", 0.26], [140, 0.13, "saw", 0.24]]))
+	sfx_bank["hit"] = _make_wav(_seq([[130, 0.05, "noise", 0.35], [220, 0.05, "square", 0.3], [150, 0.1, "saw", 0.26]]))
+	sfx_bank["step"] = _make_wav(_seq([[180, 0.03, "tri", 0.16]]))
+	sfx_bank["roll"] = _make_wav(_seq([[500, 0.03, "square", 0.2], [720, 0.03, "square", 0.2]]))
+	sfx_bank["button"] = _make_wav(_seq([[900, 0.03, "square", 0.22]]))
+	sfx_bank["win"] = _make_wav(_seq([[523, 0.09, "square", 0.28], [659, 0.09, "square", 0.28], [784, 0.09, "square", 0.28], [1047, 0.18, "square", 0.3]]))
+	sfx_bank["death"] = _make_wav(_seq([[392, 0.12, "saw", 0.3], [294, 0.12, "saw", 0.28], [196, 0.24, "saw", 0.28]]))
+
+	music_player.stream = _build_music()
+	_play_music()
+	_update_audio_buttons()
+
+
+func _build_music() -> AudioStreamWAV:
+	var prog := [
+		[220.0, 261.63, 329.63],   # Am
+		[174.61, 220.0, 261.63],   # F
+		[261.63, 329.63, 392.0],   # C
+		[196.0, 246.94, 293.66]]   # G
+	var note_dur := 0.28
+	var order := [0, 1, 2, 1, 0, 1, 2, 1]
+	var lead := PackedFloat32Array()
+	var bass := PackedFloat32Array()
+	for chord in prog:
+		for idx in order:
+			lead.append_array(_note(chord[idx] * 2.0, note_dur, "tri", 0.13))
+		bass.append_array(_note(chord[0] * 0.5, note_dur * order.size(), "square", 0.05))
+	var n := mini(lead.size(), bass.size())
+	var out := PackedFloat32Array()
+	out.resize(n)
+	for i in n:
+		out[i] = clampf(lead[i] + bass[i], -1.0, 1.0)
+	return _make_wav(out, true)
+
+
+func _sfx(sname: String) -> void:
+	if not sfx_on:
+		return
+	var s = sfx_bank.get(sname, null)
+	if s == null:
+		return
+	var p: AudioStreamPlayer = sfx_players[sfx_idx]
+	sfx_idx = (sfx_idx + 1) % sfx_players.size()
+	p.stream = s
+	p.play()
+
+
+func _play_music() -> void:
+	if music_player == null:
+		return
+	if music_on and music_player.stream:
+		if not music_player.playing:
+			music_player.play()
+	else:
+		music_player.stop()
+
+
 func _on_slot_pressed(i: int) -> void:
+	_sfx("button")
 	current_slot = i
 	var data = _load_slot(i)
 	if data is Dictionary and data.has("walls"):
@@ -483,6 +661,7 @@ func _on_slot_pressed(i: int) -> void:
 
 
 func _choose_class(c: String) -> void:
+	_sfx("button")
 	hero_class = c
 	_begin_run(null)
 	_show_game()
@@ -498,6 +677,7 @@ func _class_hp(c: String) -> int:
 func _on_ability() -> void:
 	if state != S.PLAYING or spinning or game_over:
 		return
+	_sfx("button")
 	match hero_class:
 		"mage":
 			if mage_casts <= 0 or not mage_turn_cast:
@@ -561,6 +741,7 @@ func _try_cast(cell: Vector2i) -> void:
 	mage_casts -= 1
 	mage_turn_cast = false
 	casting = false
+	_sfx("hit")
 	add_log(t("log_magic"))
 	_update_ability_ui()
 	queue_redraw()
@@ -576,6 +757,7 @@ func _try_drill(cell: Vector2i) -> void:
 	walls.erase(cell)          # permanent hole
 	wall_pass_available = false
 	drilling = false
+	_sfx("trap")
 	add_log(t("log_drill"))
 	if awaiting_move:
 		_compute_options()
@@ -584,6 +766,7 @@ func _try_drill(cell: Vector2i) -> void:
 
 
 func _exit_to_menu() -> void:
+	_sfx("button")
 	if current_slot >= 0 and state == S.PLAYING:
 		_save_slot(current_slot, _serialize_state())
 	_show_menu()
@@ -616,6 +799,7 @@ func _load_slot(i: int):
 
 
 func _delete_slot(i: int) -> void:
+	_sfx("button")
 	var fname := "slot_%d.save" % i
 	var d := DirAccess.open("user://")
 	if d and d.file_exists(fname):
@@ -967,6 +1151,7 @@ func _on_roll() -> void:
 	spinning = true
 	roll_button.disabled = true
 	options = []
+	_sfx("roll")
 	queue_redraw()
 
 	var total := 16 + randi() % 8
@@ -1102,11 +1287,13 @@ func _do_move(target: Vector2i) -> void:
 	casting = false
 	drilling = false
 	_update_ability_ui()
+	_sfx("step")
 
 	if pending_advance:
 		pending_advance = false
 		level += 1
 		player.hp = player.max_hp
+		_sfx("win")
 		new_level()
 		add_log(t("log_win") % level)
 		return
@@ -1114,6 +1301,7 @@ func _do_move(target: Vector2i) -> void:
 	if pending_respawn:
 		pending_respawn = false
 		player.hp = player.max_hp
+		_sfx("death")
 		new_level()
 		add_log(t("log_died"))
 		return
@@ -1169,6 +1357,7 @@ func _resolve_tile(cell: Vector2i) -> void:
 	ent.alive = false
 	match ent.type:
 		"enemy":
+			_sfx("hit")
 			if hero_class == "knight" and knight_shield:
 				knight_shield = false      # free kill, no damage
 				add_log(t("log_shield"))
@@ -1176,12 +1365,16 @@ func _resolve_tile(cell: Vector2i) -> void:
 				player.hp -= 1 + randi() % 6
 				_check_death()
 		"trap":
+			_sfx("trap")
 			player.gold = maxi(0, player.gold - (1 + randi() % 6))
 		"coin":
+			_sfx("coin")
 			player.gold += 1
 		"chest":
+			_sfx("chest")
 			player.gold += 1 + randi() % 6
 		"heart":
+			_sfx("heart")
 			player.hp = mini(player.max_hp, player.hp + 1 + randi() % 6)
 
 
