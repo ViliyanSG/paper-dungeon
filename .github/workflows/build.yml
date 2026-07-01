@@ -95,7 +95,6 @@ jobs:
           godot --headless --path . --import || true
           godot --headless --path . --export-debug "Android" build/android/PaperDungeon.apk
           ls -la build/android/PaperDungeon.apk
-          echo "=== orientation check ==="; AAPT=$(find "$ANDROID_HOME/build-tools" -name aapt -type f 2>/dev/null | sort | tail -1); echo "aapt: $AAPT"; "$AAPT" dump xmltree build/android/PaperDungeon.apk AndroidManifest.xml 2>/dev/null | grep -i orientation || echo "no orientation attr found"
 
       - name: Upload APK to release
         uses: ncipollo/release-action@v1
