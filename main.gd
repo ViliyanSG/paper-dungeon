@@ -39,6 +39,9 @@ const SPRITES := {
 	"heart": [".rr..rr.", "rprrrrrr", "rrrrrrrr", "rrrrrrrr", ".rrrrrr.", "..rrrr..", "...rr...", "........"],
 	"chest": ["........", ".KKKKKK.", ".KwwwwK.", ".gggggg.", ".KwllwK.", ".KwllwK.", ".KKKKKK.", "........"],
 	"player": ["...dd...", "..dddd..", "..ffff..", "..fKfK..", ".buuuub.", ".uUUUUu.", "..u..u..", "..b..b.."],
+	"knight": ["....KKKK....", "...KaaaaK...", "..KaaaaaaK..", "..KaKKKKaK..", "..KaaaaaaK..", "...KAAAAK...", ".KAAggAAK...", ".KAaggaAK...", ".KAaaaaAK...", "..AAaaAA....", "..AA..AA....", ".KKK..KKK..."],
+	"mage": [".....K......", "....KvK.....", "...KvvvK....", "..KvvvvvK...", ".KvvvvvvvK..", "...KffffK...", "...KfKKfK...", "..KVVVVVVK..", ".KVvvvvvVK..", ".KVvvyvvVK..", ".KVvvvvvVK..", "..VVV.VVV..."],
+	"ranger": ["...JJJJ.....", "..JJJJJJ....", ".JJffffJJ.w.", ".JJfKKfJJnw.", ".JJffffJJ.w.", "..jJJJJj.nw.", ".jJJJJJJj.w.", ".jJJJJJJjnw.", ".jJJJJJJj.w.", "..JJ..JJ....", "..JJ..JJ....", ".jjj..jjj..."],
 	"door": ["..DDDD..", ".DwwwwD.", "DwwwwwwD", "DwwwywwD", "DwwwwwwD", "DwwwwwwD", "DwwwwwwD", "DDDDDDDD"],
 	"stairs": ["........", "QQ......", "QqQQ....", "QqQqQQ..", "QqQqQqQQ", "QqQqQqQq", "QqQqQqQq", "QQQQQQQQ"],
 }
@@ -52,6 +55,9 @@ var SPRITE_PAL := {
 	"f": Color8(227, 180, 140), "u": Color8(46, 90, 140), "U": Color8(29, 58, 92),
 	"b": Color8(107, 74, 42), "D": Color8(74, 51, 32), "q": Color8(184, 176, 160),
 	"Q": Color8(106, 98, 88),
+	"a": Color8(154, 164, 174), "A": Color8(95, 106, 117),
+	"v": Color8(106, 74, 160), "V": Color8(63, 40, 112),
+	"J": Color8(63, 125, 79), "j": Color8(39, 77, 51),
 }
 
 enum S { MENU, SLOTS, CLASS, PLAYING }
@@ -1075,8 +1081,8 @@ func _draw() -> void:
 				if dd <= 4:
 					draw_arc(cell_center(e.pos), TILE * 0.5, 0, TAU, 20, Color(0.85, 0.2, 0.28), 3.0)
 
-	# player (hero sprite)
-	_draw_sprite("player", cell_center(player.pos))
+	# player (class-specific hero sprite)
+	_draw_sprite(hero_class, cell_center(player.pos))
 
 
 func _draw_dead(ctr: Vector2) -> void:
