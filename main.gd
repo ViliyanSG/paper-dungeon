@@ -64,10 +64,60 @@ var SPRITE_PAL := {
 	"J": Color8(63, 125, 79), "j": Color8(39, 77, 51),
 }
 
-enum S { MENU, SLOTS, CLASS, PLAYING }
+# ---- Localization (en, bg, fr, de) ----
+const LANGS := ["en", "bg", "fr", "de"]
+const STRINGS := {
+	"ui_play": ["Play", "Играй", "Jouer", "Spielen"],
+	"ui_settings": ["Settings", "Настройки", "Paramètres", "Einstellungen"],
+	"ui_choose_slot": ["Choose a slot", "Избери слот", "Choisir un slot", "Slot wählen"],
+	"ui_back": ["Back", "Назад", "Retour", "Zurück"],
+	"ui_delete": ["Delete", "Изтрий", "Supprimer", "Löschen"],
+	"ui_slot_empty": ["Slot %d — empty", "Слот %d — празен", "Slot %d — vide", "Slot %d — leer"],
+	"ui_slot_info": ["Slot %d — level %d · GP %d", "Слот %d — ниво %d · GP %d", "Slot %d — niveau %d · GP %d", "Slot %d — Level %d · GP %d"],
+	"ui_choose_class": ["Choose a class", "Избери клас", "Choisir une classe", "Klasse wählen"],
+	"ui_knight": ["KNIGHT\n10 HP · free kill 1/lvl", "РИЦАР\n10 HP · безплатно убийство 1/ниво", "CHEVALIER\n10 HP · kill gratuit 1/niv", "RITTER\n10 HP · Gratis-Kill 1/Lvl"],
+	"ui_mage": ["MAGE\n6 HP · 3 spells/lvl (1/turn), range 4", "МАГЬОСНИК\n6 HP · 3 магии/ниво (1/ход), обхват 4", "MAGE\n6 HP · 3 sorts/niv (1/tour), portée 4", "MAGIER\n6 HP · 3 Zauber/Lvl (1/Zug), Reichw. 4"],
+	"ui_ranger": ["RANGER\n8 HP · +1 step · wall hole 1/lvl", "РЕЙНДЖЪР\n8 HP · +1 стъпка · дупка в стена 1/ниво", "RÔDEUR\n8 HP · +1 pas · trou mur 1/niv", "WALDLÄUFER\n8 HP · +1 Schritt · Wandloch 1/Lvl"],
+	"ui_roll": ["Roll die", "Хвърли зар", "Lancer le dé", "Würfeln"],
+	"ui_exit": ["Exit", "Излез", "Quitter", "Verlassen"],
+	"ui_language": ["Language", "Език", "Langue", "Sprache"],
+	"hud_level": ["Level %d", "Ниво %d", "Niveau %d", "Level %d"],
+	"mode_diag": ["diagonal", "диагонал", "diagonale", "diagonal"],
+	"mode_straight": ["straight", "право", "droite", "gerade"],
+	"ab_shield_ready": ["Shield: ready", "Щит: готов", "Bouclier: prêt", "Schild: bereit"],
+	"ab_shield_used": ["Shield: used", "Щит: ползван", "Bouclier: usé", "Schild: benutzt"],
+	"ab_magic": ["Magic %d", "Магия %d", "Magie %d", "Magie %d"],
+	"ab_target": ["  •target•", "  •цел•", "  •cible•", "  •Ziel•"],
+	"ab_wall": ["Break wall (1)", "Пробий стена (1)", "Percer mur (1)", "Wand brechen (1)"],
+	"ab_wall_target": ["Break: target", "Пробий: цел", "Percer: cible", "Brechen: Ziel"],
+	"ab_wall_used": ["Wall: used", "Стена: ползвана", "Mur: usé", "Wand: benutzt"],
+	"log_new_level": ["Level %d. Roll to begin.", "Ниво %d. Хвърли зар за да започнеш.", "Niveau %d. Lancez le dé.", "Level %d. Würfle zum Start."],
+	"log_resume": ["Level %d. Roll to continue.", "Ниво %d. Хвърли зар за да продължиш.", "Niveau %d. Lancez pour continuer.", "Level %d. Würfle weiter."],
+	"log_no_move": ["Nowhere to go. Roll again.", "Няма накъде. Хвърли пак.", "Aucun chemin. Relancez.", "Kein Weg. Nochmal würfeln."],
+	"log_rolled": ["Rolled %d (%s). Choose where.", "Хвърли %d (%s). Избери накъде.", "%d (%s). Choisissez où.", "%d (%s). Wähle wohin."],
+	"log_move": ["Move %s, %d steps.", "Ход %s, %d стъпки.", "Déplacement %s, %d pas.", "Zug %s, %d Schritte."],
+	"log_gp": [" %+d GP.", " %+d GP.", " %+d GP.", " %+d GP."],
+	"log_hp": [" %+d HP.", " %+d HP.", " %+d HP.", " %+d HP."],
+	"log_win": ["Reached the exit! Level %d begins.", "Стигна изхода! Ниво %d започва.", "Sortie atteinte ! Niveau %d.", "Ausgang erreicht! Level %d."],
+	"log_died": ["You died! Level restarts.", "Загина! Нивото започва наново.", "Vous êtes mort ! Niveau relancé.", "Gestorben! Level neu."],
+	"log_shield": ["Shield! Killed an enemy safely.", "Щит! Уби враг без щета.", "Bouclier ! Ennemi tué sans dégât.", "Schild! Gegner ohne Schaden."],
+	"log_magic": ["Magic! Killed an enemy at range.", "Магия! Уби враг от разстояние.", "Magie ! Ennemi tué à distance.", "Magie! Gegner aus Distanz."],
+	"log_drill": ["Broke a hole in the wall!", "Проби дупка в стената!", "Trou percé dans le mur !", "Loch in die Wand gebrochen!"],
+	"dir_right": ["right", "надясно", "droite", "rechts"],
+	"dir_left": ["left", "наляво", "gauche", "links"],
+	"dir_down": ["down", "надолу", "bas", "unten"],
+	"dir_up": ["up", "нагоре", "haut", "oben"],
+	"dir_dr": ["down-right", "долу-дясно", "bas-droite", "unten-rechts"],
+	"dir_ur": ["up-right", "горе-дясно", "haut-droite", "oben-rechts"],
+	"dir_dl": ["down-left", "долу-ляво", "bas-gauche", "unten-links"],
+	"dir_ul": ["up-left", "горе-ляво", "haut-gauche", "oben-links"],
+}
+
+enum S { MENU, SLOTS, CLASS, SETTINGS, PLAYING }
 
 # ---- Game state ----
 var state := S.MENU
+var locale := "en"
 var current_slot := -1
 var level := 1
 var pending_advance := false
@@ -103,6 +153,7 @@ var game_ui: Control
 var menu_ui: Control
 var slots_ui: Control
 var class_ui: Control
+var settings_ui: Control
 var hp_label: Label
 var gold_label: Label
 var level_label: Label
@@ -112,11 +163,27 @@ var reset_button: Button
 var ability_button: Button
 var log_label: Label
 var slot_buttons: Array = []
+var del_buttons: Array = []
+# static-text controls that get re-labelled on language change
+var play_btn: Button
+var settings_btn: Button
+var slots_title: Label
+var slots_back: Button
+var class_title: Label
+var knight_btn: Button
+var mage_btn: Button
+var ranger_btn: Button
+var class_back: Button
+var settings_title: Label
+var lang_title: Label
+var settings_back: Button
 
 
 func _ready() -> void:
 	randomize()
+	_load_settings()
 	_build_ui()
+	_apply_language()
 	_check_version_wipe()
 	_show_menu()
 
@@ -198,11 +265,14 @@ func _build_ui() -> void:
 	menu_ui.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	menu_ui.theme = ui_theme
 	layer.add_child(menu_ui)
-	var title := _make_label(menu_ui, Vector2(40, 300), Vector2(640, 90), 58, C_GOLD)
+	var title := _make_label(menu_ui, Vector2(40, 280), Vector2(640, 90), 54, C_GOLD)
 	title.text = "PAPER DUNGEON"
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	var play_btn := _make_button(menu_ui, "Играй", Vector2(210, 560), Vector2(300, 120))
+	play_btn = _make_button(menu_ui, "", Vector2(210, 520), Vector2(300, 110))
 	play_btn.pressed.connect(_show_slots)
+	settings_btn = _make_button(menu_ui, "", Vector2(210, 660), Vector2(300, 100))
+	settings_btn.add_theme_font_size_override("font_size", 28)
+	settings_btn.pressed.connect(_show_settings)
 
 	# ---- Slot select screen ----
 	slots_ui = Control.new()
@@ -210,21 +280,22 @@ func _build_ui() -> void:
 	slots_ui.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	slots_ui.theme = ui_theme
 	layer.add_child(slots_ui)
-	var stitle := _make_label(slots_ui, Vector2(40, 200), Vector2(640, 70), 46, C_GOLD)
-	stitle.text = "Избери слот"
-	stitle.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	slots_title = _make_label(slots_ui, Vector2(40, 200), Vector2(640, 70), 46, C_GOLD)
+	slots_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	slot_buttons = []
+	del_buttons = []
 	for i in 3:
 		var sbtn := _make_button(slots_ui, "", Vector2(50, 330 + i * 160), Vector2(470, 130))
 		sbtn.add_theme_font_size_override("font_size", 24)
 		sbtn.pressed.connect(_on_slot_pressed.bind(i))
 		slot_buttons.append(sbtn)
-		var del := _make_button(slots_ui, "Изтрий", Vector2(535, 330 + i * 160), Vector2(135, 130))
+		var del := _make_button(slots_ui, "", Vector2(535, 330 + i * 160), Vector2(135, 130))
 		del.add_theme_font_size_override("font_size", 22)
 		del.pressed.connect(_delete_slot.bind(i))
-	var back_btn := _make_button(slots_ui, "Назад", Vector2(260, 900), Vector2(200, 80))
-	back_btn.add_theme_font_size_override("font_size", 26)
-	back_btn.pressed.connect(_show_menu)
+		del_buttons.append(del)
+	slots_back = _make_button(slots_ui, "", Vector2(260, 900), Vector2(200, 80))
+	slots_back.add_theme_font_size_override("font_size", 26)
+	slots_back.pressed.connect(_show_menu)
 
 	# ---- Class select screen ----
 	class_ui = Control.new()
@@ -232,21 +303,41 @@ func _build_ui() -> void:
 	class_ui.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	class_ui.theme = ui_theme
 	layer.add_child(class_ui)
-	var ctitle := _make_label(class_ui, Vector2(40, 150), Vector2(640, 70), 46, C_GOLD)
-	ctitle.text = "Избери клас"
-	ctitle.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	var kb := _make_button(class_ui, "РИЦАР\n10 HP · безплатно убийство 1/ниво", Vector2(70, 290), Vector2(580, 120))
-	kb.add_theme_font_size_override("font_size", 24)
-	kb.pressed.connect(_choose_class.bind("knight"))
-	var mb := _make_button(class_ui, "МАГЬОСНИК\n6 HP · 3 магии/ниво (1/ход), обхват 4", Vector2(70, 440), Vector2(580, 120))
-	mb.add_theme_font_size_override("font_size", 24)
-	mb.pressed.connect(_choose_class.bind("mage"))
-	var rb := _make_button(class_ui, "РЕЙНДЖЪР\n8 HP · +1 стъпка · дупка в стена 1/ниво", Vector2(70, 590), Vector2(580, 120))
-	rb.add_theme_font_size_override("font_size", 22)
-	rb.pressed.connect(_choose_class.bind("ranger"))
-	var cback := _make_button(class_ui, "Назад", Vector2(260, 770), Vector2(200, 80))
-	cback.add_theme_font_size_override("font_size", 26)
-	cback.pressed.connect(_show_slots)
+	class_title = _make_label(class_ui, Vector2(40, 150), Vector2(640, 70), 46, C_GOLD)
+	class_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	knight_btn = _make_button(class_ui, "", Vector2(70, 290), Vector2(580, 120))
+	knight_btn.add_theme_font_size_override("font_size", 24)
+	knight_btn.pressed.connect(_choose_class.bind("knight"))
+	mage_btn = _make_button(class_ui, "", Vector2(70, 440), Vector2(580, 120))
+	mage_btn.add_theme_font_size_override("font_size", 24)
+	mage_btn.pressed.connect(_choose_class.bind("mage"))
+	ranger_btn = _make_button(class_ui, "", Vector2(70, 590), Vector2(580, 120))
+	ranger_btn.add_theme_font_size_override("font_size", 22)
+	ranger_btn.pressed.connect(_choose_class.bind("ranger"))
+	class_back = _make_button(class_ui, "", Vector2(260, 770), Vector2(200, 80))
+	class_back.add_theme_font_size_override("font_size", 26)
+	class_back.pressed.connect(_show_slots)
+
+	# ---- Settings screen ----
+	settings_ui = Control.new()
+	settings_ui.set_anchors_preset(Control.PRESET_FULL_RECT)
+	settings_ui.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	settings_ui.theme = ui_theme
+	layer.add_child(settings_ui)
+	settings_title = _make_label(settings_ui, Vector2(40, 180), Vector2(640, 70), 46, C_GOLD)
+	settings_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	lang_title = _make_label(settings_ui, Vector2(40, 320), Vector2(640, 50), 30, C_TEXT)
+	lang_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	var lang_names := ["English", "Български", "Français", "Deutsch"]
+	for i in 4:
+		var col := i % 2
+		var row := i / 2
+		var lb := _make_button(settings_ui, lang_names[i], Vector2(90 + col * 290, 400 + row * 130), Vector2(270, 110))
+		lb.add_theme_font_size_override("font_size", 28)
+		lb.pressed.connect(_set_language.bind(LANGS[i]))
+	settings_back = _make_button(settings_ui, "", Vector2(260, 720), Vector2(200, 80))
+	settings_back.add_theme_font_size_override("font_size", 26)
+	settings_back.pressed.connect(_show_menu)
 
 
 func _make_label(parent: Control, pos: Vector2, sz: Vector2, font_size: int, color: Color) -> Label:
@@ -300,6 +391,7 @@ func _set_screen(s: int) -> void:
 	menu_ui.visible = (s == S.MENU)
 	slots_ui.visible = (s == S.SLOTS)
 	class_ui.visible = (s == S.CLASS)
+	settings_ui.visible = (s == S.SETTINGS)
 	game_ui.visible = (s == S.PLAYING)
 	queue_redraw()
 
@@ -317,8 +409,67 @@ func _show_class() -> void:
 	_set_screen(S.CLASS)
 
 
+func _show_settings() -> void:
+	_set_screen(S.SETTINGS)
+
+
 func _show_game() -> void:
 	_set_screen(S.PLAYING)
+
+
+# =====================================================================
+#  Localization + settings
+# =====================================================================
+func t(key: String) -> String:
+	var arr = STRINGS.get(key, null)
+	if arr == null:
+		return key
+	var i := LANGS.find(locale)
+	if i < 0:
+		i = 0
+	return arr[i]
+
+
+func _set_language(l: String) -> void:
+	locale = l
+	_save_settings()
+	_apply_language()
+	queue_redraw()
+
+
+func _apply_language() -> void:
+	play_btn.text = t("ui_play")
+	settings_btn.text = t("ui_settings")
+	slots_title.text = t("ui_choose_slot")
+	slots_back.text = t("ui_back")
+	for b in del_buttons:
+		b.text = t("ui_delete")
+	class_title.text = t("ui_choose_class")
+	knight_btn.text = t("ui_knight")
+	mage_btn.text = t("ui_mage")
+	ranger_btn.text = t("ui_ranger")
+	class_back.text = t("ui_back")
+	settings_title.text = t("ui_settings")
+	lang_title.text = t("ui_language")
+	settings_back.text = t("ui_back")
+	roll_button.text = t("ui_roll")
+	reset_button.text = t("ui_exit")
+	_refresh_slots()
+	if state == S.PLAYING:
+		update_hud()
+		_update_ability_ui()
+
+
+func _load_settings() -> void:
+	var c := ConfigFile.new()
+	if c.load("user://settings.cfg") == OK:
+		locale = c.get_value("general", "locale", "en")
+
+
+func _save_settings() -> void:
+	var c := ConfigFile.new()
+	c.set_value("general", "locale", locale)
+	c.save("user://settings.cfg")
 
 
 func _on_slot_pressed(i: int) -> void:
@@ -369,20 +520,20 @@ func _update_ability_ui() -> void:
 		"knight":
 			ability_button.visible = true
 			ability_button.disabled = false
-			ability_button.text = "Щит: готов" if knight_shield else "Щит: ползван"
+			ability_button.text = t("ab_shield_ready") if knight_shield else t("ab_shield_used")
 		"mage":
 			ability_button.visible = true
 			ability_button.disabled = mage_casts <= 0 or not mage_turn_cast
-			ability_button.text = ("Магия %d" % mage_casts) + ("  •цел•" if casting else "")
+			ability_button.text = (t("ab_magic") % mage_casts) + (t("ab_target") if casting else "")
 		"ranger":
 			ability_button.visible = true
 			ability_button.disabled = not (wall_pass_available and _adjacent_to_wall())
 			if not wall_pass_available:
-				ability_button.text = "Стена: ползвана"
+				ability_button.text = t("ab_wall_used")
 			elif drilling:
-				ability_button.text = "Пробий: цел"
+				ability_button.text = t("ab_wall_target")
 			else:
-				ability_button.text = "Пробий стена (1)"
+				ability_button.text = t("ab_wall")
 		_:
 			ability_button.visible = false
 
@@ -410,7 +561,7 @@ func _try_cast(cell: Vector2i) -> void:
 	mage_casts -= 1
 	mage_turn_cast = false
 	casting = false
-	add_log("Магия! Уби враг от разстояние.")
+	add_log(t("log_magic"))
 	_update_ability_ui()
 	queue_redraw()
 
@@ -425,7 +576,7 @@ func _try_drill(cell: Vector2i) -> void:
 	walls.erase(cell)          # permanent hole
 	wall_pass_available = false
 	drilling = false
-	add_log("Проби дупка в стената!")
+	add_log(t("log_drill"))
 	if awaiting_move:
 		_compute_options()
 	_update_ability_ui()
@@ -478,9 +629,9 @@ func _refresh_slots() -> void:
 	for i in 3:
 		var d = _load_slot(i)
 		if d == null:
-			slot_buttons[i].text = "Слот %d — празен" % (i + 1)
+			slot_buttons[i].text = t("ui_slot_empty") % (i + 1)
 		else:
-			slot_buttons[i].text = "Слот %d — ниво %d · GP %d" % [i + 1, int(d.get("level", 1)), int(d.get("gold", 0))]
+			slot_buttons[i].text = t("ui_slot_info") % [i + 1, int(d.get("level", 1)), int(d.get("gold", 0))]
 
 
 func _begin_run(data) -> void:
@@ -579,7 +730,7 @@ func _restore_state(data: Dictionary) -> void:
 	casting = false
 	log_lines = []
 
-	add_log("Ниво %d. Хвърли зар за да продължиш." % level)
+	add_log(t("log_resume") % level)
 	roll_button.disabled = false
 	roll_result_label.text = ""
 	_update_ability_ui()
@@ -620,7 +771,7 @@ func new_level() -> void:
 
 	_generate_level()
 
-	add_log("Ниво %d. Хвърли зар за да започнеш." % level)
+	add_log(t("log_new_level") % level)
 	roll_button.disabled = false
 	roll_result_label.text = ""
 	_update_ability_ui()
@@ -830,13 +981,13 @@ func _on_roll() -> void:
 		mage_turn_cast = true   # one cast available this turn
 	_compute_options()
 
-	var mode_txt := "диагонал" if diagonal else "право"
+	var mode_txt := t("mode_diag") if diagonal else t("mode_straight")
 	if options.is_empty():
-		add_log("Няма накъде. Хвърли пак.")
+		add_log(t("log_no_move"))
 		roll_button.disabled = false
 	else:
 		awaiting_move = true
-		add_log("Хвърли %d (%s). Избери накъде." % [current_n, mode_txt])
+		add_log(t("log_rolled") % [current_n, mode_txt])
 	_update_ability_ui()
 	_update_roll_label()
 	queue_redraw()
@@ -957,27 +1108,27 @@ func _do_move(target: Vector2i) -> void:
 		level += 1
 		player.hp = player.max_hp
 		new_level()
-		add_log("Стигна изхода! Ниво %d започва." % level)
+		add_log(t("log_win") % level)
 		return
 
 	if pending_respawn:
 		pending_respawn = false
 		player.hp = player.max_hp
 		new_level()
-		add_log("Загина! Нивото започва наново.")
+		add_log(t("log_died"))
 		return
 
 	if not game_over:
 		roll_button.disabled = false
 		var steps := full_path.size()
 		var first_dir: Vector2i = full_path[0] - start_pos if steps > 0 else Vector2i.ZERO
-		var msg := "Ход %s, %d стъпки." % [_dir_word(first_dir), steps]
+		var msg := t("log_move") % [_dir_word(first_dir), steps]
 		var gd: int = player.gold - gold_before
 		var hd: int = player.hp - hp_before
 		if gd != 0:
-			msg += " %+d GP." % gd
+			msg += t("log_gp") % gd
 		if hd != 0:
-			msg += " %+d HP." % hd
+			msg += t("log_hp") % hd
 		add_log(msg)
 	_update_roll_label()
 	queue_redraw()
@@ -987,24 +1138,24 @@ func _dir_word(d: Vector2i) -> String:
 	var h := ""
 	var v := ""
 	if d.x > 0:
-		h = "дясно"
+		h = "r"
 	elif d.x < 0:
-		h = "ляво"
+		h = "l"
 	if d.y > 0:
-		v = "долу"
+		v = "d"
 	elif d.y < 0:
-		v = "горе"
+		v = "u"
 	if h != "" and v != "":
-		return v + "-" + h
+		return t("dir_" + v + h)          # dr, dl, ur, ul
 	elif h != "":
-		return "на" + h
+		return t("dir_right") if h == "r" else t("dir_left")
 	elif v != "":
-		return "на" + v
+		return t("dir_down") if v == "d" else t("dir_up")
 	return "?"
 
 
 func _update_roll_label() -> void:
-	var mode_txt := "диагонал" if diagonal else "право"
+	var mode_txt := t("mode_diag") if diagonal else t("mode_straight")
 	roll_result_label.text = "%d\n%s" % [current_n, mode_txt]
 
 
@@ -1020,7 +1171,7 @@ func _resolve_tile(cell: Vector2i) -> void:
 		"enemy":
 			if hero_class == "knight" and knight_shield:
 				knight_shield = false      # free kill, no damage
-				add_log("Щит! Уби враг без щета.")
+				add_log(t("log_shield"))
 			else:
 				player.hp -= 1 + randi() % 6
 				_check_death()
@@ -1057,7 +1208,7 @@ func _win() -> void:
 func update_hud() -> void:
 	hp_label.text = "HP %d/%d" % [player.hp, player.max_hp]
 	gold_label.text = "GP %d" % player.gold
-	level_label.text = "Ниво %d" % level
+	level_label.text = t("hud_level") % level
 
 
 func add_log(msg: String) -> void:
