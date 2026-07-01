@@ -95,6 +95,7 @@ jobs:
           godot --headless --path . --import || true
           godot --headless --path . --export-debug "Android" build/android/PaperDungeon.apk
           ls -la build/android/PaperDungeon.apk
+          echo "=== orientation check ==="; grep -rho 'screenOrientation="[^"]*"' android/build/AndroidManifest.xml 2>/dev/null | head -2 || true
 
       - name: Upload APK to release
         uses: ncipollo/release-action@v1
