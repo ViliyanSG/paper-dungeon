@@ -79,8 +79,15 @@ jobs:
         run: |
           SDKM=$(find "$ANDROID_HOME" -name sdkmanager -type f 2>/dev/null | head -1)
           echo "sdkmanager: $SDKM"
-          yes | "$SDKM" "platforms;android-34" "build-tools;34.0.0" 2>&1 | tail -3 || true
-          ls "$ANDROID_HOME/build-tools" || true
+          yes | "$SDKM" --licenses 2>&1 | tail -2 || true
+          yes | "$SDKM" "platforms;android-34" "build-tools;34.0.0" 2>&1 | tail -2 || true
+
+      - name: Install Android build template
+        run: |
+          mkdir -p android/build
+          unzip -o ~/.local/share/godot/export_templates/4.3.stable/android_source.zip -d android/build > /dev/null
+          echo -n "4.3.stable" > android/.build_version
+          touch android/.gdignore
 
       - name: Export APK
         run: |
