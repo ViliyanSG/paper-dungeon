@@ -73,11 +73,11 @@ var pending_respawn := false
 # ---- Hero class + abilities ----
 var hero_class := "knight"
 var knight_shield := false        # free enemy kill available this level
-var wall_pass_available := false  # ranger: pass a wall once per level
-var wall_pass_armed := false
-var mage_casts := 0               # mage: ranged kills left this turn
+var wall_pass_available := false  # ranger: drill a wall once per level
+var drilling := false
+var mage_casts := 0               # mage: ranged kills left this level
+var mage_turn_cast := false       # mage: may cast once after each roll
 var casting := false
-var _ignore_walls := false
 
 var player := {}
 var current_n := 0
@@ -222,10 +222,10 @@ func _build_ui() -> void:
 	var kb := _make_button(class_ui, "РИЦАР\n10 HP · безплатно убийство 1/ниво", Vector2(70, 290), Vector2(580, 120))
 	kb.add_theme_font_size_override("font_size", 24)
 	kb.pressed.connect(_choose_class.bind("knight"))
-	var mb := _make_button(class_ui, "МАГЬОСНИК\n6 HP · 3 магии/ниво, обхват 4", Vector2(70, 440), Vector2(580, 120))
+	var mb := _make_button(class_ui, "МАГЬОСНИК\n6 HP · 3 магии/ниво (1/ход), обхват 4", Vector2(70, 440), Vector2(580, 120))
 	mb.add_theme_font_size_override("font_size", 24)
 	mb.pressed.connect(_choose_class.bind("mage"))
-	var rb := _make_button(class_ui, "РЕЙНДЖЪР\n8 HP · +1 стъпка · през стена 1/ниво", Vector2(70, 590), Vector2(580, 120))
+	var rb := _make_button(class_ui, "РЕЙНДЖЪР\n8 HP · +1 стъпка · дупка в стена 1/ниво", Vector2(70, 590), Vector2(580, 120))
 	rb.add_theme_font_size_override("font_size", 22)
 	rb.pressed.connect(_choose_class.bind("ranger"))
 	var cback := _make_button(class_ui, "Назад", Vector2(260, 770), Vector2(200, 80))
@@ -333,42 +333,56 @@ func _on_ability() -> void:
 		return
 	match hero_class:
 		"mage":
-			if mage_casts <= 0:
+			if mage_casts <= 0 or not mage_turn_cast:
 				return
 			casting = not casting
+			drilling = false
 			_update_ability_ui()
 			queue_redraw()
 		"ranger":
-			if not wall_pass_available:
+			if not (wall_pass_available and _adjacent_to_wall()):
 				return
-			wall_pass_armed = not wall_pass_armed
-			if awaiting_move:
-				_compute_options()
+			drilling = not drilling
+			casting = false
 			_update_ability_ui()
 			queue_redraw()
 
 
 func _update_ability_ui() -> void:
 	match hero_class:
+		"knight":
+			ability_button.visible = true
+			ability_button.disabled = false
+			ability_button.text = "Щит: готов" if knight_shield else "Щит: ползван"
 		"mage":
 			ability_button.visible = true
-			ability_button.disabled = mage_casts <= 0
+			ability_button.disabled = mage_casts <= 0 or not mage_turn_cast
 			ability_button.text = ("Магия %d" % mage_casts) + ("  •цел•" if casting else "")
 		"ranger":
 			ability_button.visible = true
-			ability_button.disabled = not wall_pass_available
-			if wall_pass_armed:
-				ability_button.text = "Стена: активна"
-			elif wall_pass_available:
-				ability_button.text = "Пробий стена (1)"
-			else:
+			ability_button.disabled = not (wall_pass_available and _adjacent_to_wall())
+			if not wall_pass_available:
 				ability_button.text = "Стена: ползвана"
+			elif drilling:
+				ability_button.text = "Пробий: цел"
+			else:
+				ability_button.text = "Пробий стена (1)"
 		_:
 			ability_button.visible = false
 
 
+func _adjacent_to_wall() -> bool:
+	for dy in range(-1, 2):
+		for dx in range(-1, 2):
+			if dx == 0 and dy == 0:
+				continue
+			if is_wall(player.pos + Vector2i(dx, dy)):
+				return true
+	return false
+
+
 func _try_cast(cell: Vector2i) -> void:
-	if mage_casts <= 0:
+	if mage_casts <= 0 or not mage_turn_cast:
 		return
 	var e = entity_at(cell)
 	if e == null or e.type != "enemy":
@@ -378,9 +392,26 @@ func _try_cast(cell: Vector2i) -> void:
 		return
 	e.alive = false
 	mage_casts -= 1
+	mage_turn_cast = false
+	casting = false
 	add_log("Магия! Уби враг от разстояние.")
-	if mage_casts <= 0:
-		casting = false
+	_update_ability_ui()
+	queue_redraw()
+
+
+func _try_drill(cell: Vector2i) -> void:
+	if not wall_pass_available or not is_wall(cell):
+		return
+	var dx := absi(cell.x - player.pos.x)
+	var dy := absi(cell.y - player.pos.y)
+	if maxi(dx, dy) != 1:
+		return   # must be an adjacent wall
+	walls.erase(cell)          # permanent hole
+	wall_pass_available = false
+	drilling = false
+	add_log("Проби дупка в стената!")
+	if awaiting_move:
+		_compute_options()
 	_update_ability_ui()
 	queue_redraw()
 
@@ -526,8 +557,9 @@ func _restore_state(data: Dictionary) -> void:
 	pending_respawn = false
 	knight_shield = bool(data.get("shield", hero_class == "knight"))
 	wall_pass_available = bool(data.get("wallpass", hero_class == "ranger"))
-	wall_pass_armed = false
+	drilling = false
 	mage_casts = int(data.get("casts", 3))
+	mage_turn_cast = false
 	casting = false
 	log_lines = []
 
@@ -564,8 +596,9 @@ func new_level() -> void:
 	pending_respawn = false
 	knight_shield = (hero_class == "knight")
 	wall_pass_available = (hero_class == "ranger")
-	wall_pass_armed = false
+	drilling = false
 	mage_casts = 3
+	mage_turn_cast = false
 	casting = false
 	log_lines = []
 
@@ -777,6 +810,8 @@ func _on_roll() -> void:
 	current_n = 1 + randi() % 6
 	diagonal = (current_n % 2) == 1
 	spinning = false
+	if hero_class == "mage":
+		mage_turn_cast = true   # one cast available this turn
 	_compute_options()
 
 	var mode_txt := "диагонал" if diagonal else "право"
@@ -794,11 +829,9 @@ func _on_roll() -> void:
 func _compute_options() -> void:
 	options = []
 	option_paths = {}
-	_ignore_walls = (hero_class == "ranger" and wall_pass_armed)
 	_explore(player.pos, current_n, Vector2i.ZERO, [], true)
 	if hero_class == "ranger":
 		_explore(player.pos, current_n + 1, Vector2i.ZERO, [], true)  # +1 step option
-	_ignore_walls = false
 	for cell in option_paths:
 		options.append(cell)
 
@@ -842,7 +875,7 @@ func _max_steps(from: Vector2i, d: Vector2i, n: int) -> int:
 		var np: Vector2i = p + d
 		if np.x < 0 or np.y < 0 or np.x >= COLS or np.y >= ROWS:
 			break
-		if is_wall(np) and not _ignore_walls:
+		if is_wall(np):
 			break  # walls block movement
 		p = np
 		k += 1
@@ -873,6 +906,9 @@ func _unhandled_input(event: InputEvent) -> void:
 	if casting:
 		_try_cast(cell)
 		return
+	if drilling:
+		_try_drill(cell)
+		return
 	if awaiting_move and cell in options:
 		_do_move(cell)
 
@@ -896,14 +932,8 @@ func _do_move(target: Vector2i) -> void:
 
 	update_hud()
 
-	# ranger: consume the wall-pass charge only if a wall was actually crossed
 	casting = false
-	if wall_pass_armed:
-		for c in full_path:
-			if is_wall(c):
-				wall_pass_available = false
-				break
-		wall_pass_armed = false
+	drilling = false
 	_update_ability_ui()
 
 	if pending_advance:
@@ -1117,6 +1147,16 @@ func _draw() -> void:
 				var dd := maxi(absi(e.pos.x - player.pos.x), absi(e.pos.y - player.pos.y))
 				if dd <= 4:
 					draw_arc(cell_center(e.pos), TILE * 0.5, 0, TAU, 20, Color(0.85, 0.2, 0.28), 3.0)
+
+	# ranger drilling — highlight adjacent walls that can be breached
+	if drilling:
+		for dy in range(-1, 2):
+			for dx in range(-1, 2):
+				if dx == 0 and dy == 0:
+					continue
+				var wc: Vector2i = player.pos + Vector2i(dx, dy)
+				if is_wall(wc):
+					draw_rect(Rect2(wc.x * TILE, GRID_TOP + wc.y * TILE, TILE, TILE), Color(0.95, 0.6, 0.15), false, 3.0)
 
 	# player (class-specific hero sprite)
 	_draw_sprite(hero_class, cell_center(player.pos))
