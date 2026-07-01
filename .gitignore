@@ -4,6 +4,10 @@
 # Exported builds
 /build/
 
+# Android build template (generated in CI)
+/android/
+debug.keystore
+
 # OS / editor junk
 .DS_Store
 Thumbs.db
