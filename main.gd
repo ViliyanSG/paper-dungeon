@@ -222,7 +222,7 @@ func _build_ui() -> void:
 	var kb := _make_button(class_ui, "РИЦАР\n10 HP · безплатно убийство 1/ниво", Vector2(70, 290), Vector2(580, 120))
 	kb.add_theme_font_size_override("font_size", 24)
 	kb.pressed.connect(_choose_class.bind("knight"))
-	var mb := _make_button(class_ui, "МАГЬОСНИК\n6 HP · 3 магии/ход, обхват 4", Vector2(70, 440), Vector2(580, 120))
+	var mb := _make_button(class_ui, "МАГЬОСНИК\n6 HP · 3 магии/ниво, обхват 4", Vector2(70, 440), Vector2(580, 120))
 	mb.add_theme_font_size_override("font_size", 24)
 	mb.pressed.connect(_choose_class.bind("mage"))
 	var rb := _make_button(class_ui, "РЕЙНДЖЪР\n8 HP · +1 стъпка · през стена 1/ниво", Vector2(70, 590), Vector2(580, 120))
@@ -475,6 +475,7 @@ func _serialize_state() -> Dictionary:
 		"class": hero_class,
 		"shield": knight_shield,
 		"wallpass": wall_pass_available,
+		"casts": mage_casts,
 		"gold": player.gold, "hp": player.hp, "max_hp": player.max_hp,
 		"entrance": [entrance_cell.x, entrance_cell.y],
 		"exit": [exit_cell.x, exit_cell.y],
@@ -526,7 +527,7 @@ func _restore_state(data: Dictionary) -> void:
 	knight_shield = bool(data.get("shield", hero_class == "knight"))
 	wall_pass_available = bool(data.get("wallpass", hero_class == "ranger"))
 	wall_pass_armed = false
-	mage_casts = 3
+	mage_casts = int(data.get("casts", 3))
 	casting = false
 	log_lines = []
 
@@ -776,7 +777,6 @@ func _on_roll() -> void:
 	current_n = 1 + randi() % 6
 	diagonal = (current_n % 2) == 1
 	spinning = false
-	mage_casts = 3          # fresh casts for the new turn
 	_compute_options()
 
 	var mode_txt := "диагонал" if diagonal else "право"
