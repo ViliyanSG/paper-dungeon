@@ -78,8 +78,11 @@ jobs:
       - name: Export APK
         run: |
           mkdir -p build/android
+          echo "=== editor settings ==="; cat ~/.config/godot/editor_settings-4.tres
+          echo "=== templates ==="; ls -la ~/.local/share/godot/export_templates/4.3.stable/ | head -30
+          echo "=== keystore ==="; ls -la debug.keystore
           godot --headless --path . --import || true
-          godot --headless --path . --export-debug "Android" build/android/PaperDungeon.apk
+          godot --headless --path . --verbose --export-debug "Android" build/android/PaperDungeon.apk
 
       - name: Upload APK to release
         uses: ncipollo/release-action@v1
