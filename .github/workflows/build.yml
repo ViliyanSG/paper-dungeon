@@ -19,6 +19,9 @@ jobs:
       - name: Stamp build version
         run: sed -i 's/GAME_VERSION := "dev"/GAME_VERSION := "${{ github.run_number }}"/' main.gd
 
+      - name: Remove Android preset (desktop job only)
+        run: sed -i '/^\[preset\.2\]/,$d' export_presets.cfg
+
       - name: Export (Windows + Linux)
         id: export
         uses: firebelley/godot-export@v6.0.0
