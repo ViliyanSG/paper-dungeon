@@ -33,6 +33,54 @@ jobs:
         uses: ncipollo/release-action@v1
         with:
           generateReleaseNotes: true
+          allowUpdates: true
           tag: v0.1.${{ github.run_number }}
           artifacts: ${{ steps.export.outputs.archive_directory }}/*
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+  android:
+    name: Export Android
+    needs: export
+    runs-on: ubuntu-latest
+    container:
+      image: barichello/godot-ci:4.3.0
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Stamp build version
+        run: sed -i 's/GAME_VERSION := "dev"/GAME_VERSION := "${{ github.run_number }}"/' main.gd
+
+      - name: Setup export templates
+        run: |
+          mkdir -v -p ~/.local/share/godot/export_templates/
+          mv /root/.local/share/godot/export_templates/4.3.stable ~/.local/share/godot/export_templates/4.3.stable || true
+
+      - name: Create debug keystore
+        run: keytool -keyalg RSA -genkeypair -alias androiddebugkey -keypass android -keystore debug.keystore -storepass android -dname "CN=Android Debug,O=Android,C=US" -validity 9999 -deststoretype pkcs12
+
+      - name: Configure Godot Android settings
+        run: |
+          mkdir -p ~/.config/godot
+          {
+            echo '[gd_resource type="EditorSettings" format=3]'
+            echo '[resource]'
+            echo "export/android/android_sdk_path = \"$ANDROID_HOME\""
+            echo "export/android/debug_keystore = \"$(pwd)/debug.keystore\""
+            echo 'export/android/debug_keystore_user = "androiddebugkey"'
+            echo 'export/android/debug_keystore_pass = "android"'
+          } > ~/.config/godot/editor_settings-4.tres
+
+      - name: Export APK
+        run: |
+          mkdir -p build/android
+          godot --headless --path . --import || true
+          godot --headless --path . --export-debug "Android" build/android/PaperDungeon.apk
+
+      - name: Upload APK to release
+        uses: ncipollo/release-action@v1
+        with:
+          allowUpdates: true
+          tag: v0.1.${{ github.run_number }}
+          artifacts: build/android/PaperDungeon.apk
           token: ${{ secrets.GITHUB_TOKEN }}
