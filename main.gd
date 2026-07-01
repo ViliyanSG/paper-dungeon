@@ -29,6 +29,9 @@ const C_WALL := Color(0.361, 0.322, 0.275)
 const C_WALL_HI := Color(0.471, 0.424, 0.361)
 const C_WALL_LO := Color(0.227, 0.196, 0.165)
 const C_PANEL := Color(0.172, 0.149, 0.125)
+const C_BG := Color(0.13, 0.12, 0.11)      # dark stone backdrop
+const C_BG_LO := Color(0.09, 0.08, 0.075)  # mortar
+const C_BG_HI := Color(0.18, 0.165, 0.15)  # brick top edge
 
 # ---- Pixel sprites (8x8 maps + palette) ----
 const SPRITES := {
@@ -95,6 +98,7 @@ var game_over := false
 var log_lines: Array[String] = []
 
 # ---- UI nodes ----
+var ui_theme: Theme
 var game_ui: Control
 var menu_ui: Control
 var slots_ui: Control
@@ -146,10 +150,19 @@ func _build_ui() -> void:
 	var layer := CanvasLayer.new()
 	add_child(layer)
 
+	# pixel font applied to every screen via a shared Theme
+	var pf: FontFile = load("res://fonts/PixelOperator.ttf")
+	pf.antialiasing = TextServer.FONT_ANTIALIASING_NONE
+	pf.hinting = TextServer.HINTING_NONE
+	ui_theme = Theme.new()
+	ui_theme.default_font = pf
+	ui_theme.default_font_size = 24
+
 	# ---- Game screen ----
 	game_ui = Control.new()
 	game_ui.set_anchors_preset(Control.PRESET_FULL_RECT)
 	game_ui.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	game_ui.theme = ui_theme
 	layer.add_child(game_ui)
 
 	hp_label = _make_label(game_ui, Vector2(20, 26), Vector2(260, 50), 32, C_RED)
@@ -183,6 +196,7 @@ func _build_ui() -> void:
 	menu_ui = Control.new()
 	menu_ui.set_anchors_preset(Control.PRESET_FULL_RECT)
 	menu_ui.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	menu_ui.theme = ui_theme
 	layer.add_child(menu_ui)
 	var title := _make_label(menu_ui, Vector2(40, 300), Vector2(640, 90), 58, C_GOLD)
 	title.text = "PAPER DUNGEON"
@@ -194,6 +208,7 @@ func _build_ui() -> void:
 	slots_ui = Control.new()
 	slots_ui.set_anchors_preset(Control.PRESET_FULL_RECT)
 	slots_ui.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	slots_ui.theme = ui_theme
 	layer.add_child(slots_ui)
 	var stitle := _make_label(slots_ui, Vector2(40, 200), Vector2(640, 70), 46, C_GOLD)
 	stitle.text = "Избери слот"
@@ -215,6 +230,7 @@ func _build_ui() -> void:
 	class_ui = Control.new()
 	class_ui.set_anchors_preset(Control.PRESET_FULL_RECT)
 	class_ui.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	class_ui.theme = ui_theme
 	layer.add_child(class_ui)
 	var ctitle := _make_label(class_ui, Vector2(40, 150), Vector2(640, 70), 46, C_GOLD)
 	ctitle.text = "Избери клас"
@@ -1070,14 +1086,29 @@ func _draw_sprite(sprite_name: String, ctr: Vector2) -> void:
 				draw_rect(Rect2(ox + x * px, oy + y * px, px + 0.7, px + 0.7), SPRITE_PAL[ch], true)
 
 
+func _draw_background() -> void:
+	var w := COLS * TILE
+	var h := 1280
+	draw_rect(Rect2(0, 0, w, h), C_BG, true)
+	var bw := 48
+	var bh := 24
+	var rows := int(h / bh) + 1
+	var cols := int(w / bw) + 2
+	for row in range(rows):
+		var y := row * bh
+		var off := (bw / 2) if (row % 2 == 1) else 0
+		draw_line(Vector2(0, y), Vector2(w, y), C_BG_LO, 1.0)
+		for col in range(-1, cols):
+			var x := col * bw + off
+			draw_line(Vector2(x, y), Vector2(x, y + bh), C_BG_LO, 1.0)
+			draw_line(Vector2(x + 1, y + 1), Vector2(x + bw - 1, y + 1), C_BG_HI, 1.0)
+
+
 func _draw() -> void:
+	_draw_background()
 	if state != S.PLAYING:
 		return
 	var grid_bottom := GRID_TOP + ROWS * TILE
-
-	# framing panels (top + bottom) with gold trim
-	draw_rect(Rect2(0, 0, COLS * TILE, GRID_TOP), C_PANEL, true)
-	draw_rect(Rect2(0, grid_bottom, COLS * TILE, 460), C_PANEL, true)
 
 	# parchment play field
 	draw_rect(Rect2(0, GRID_TOP, COLS * TILE, ROWS * TILE), C_PAPER, true)
