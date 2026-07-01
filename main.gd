@@ -5,6 +5,7 @@ extends Node2D
 ## click one to slide there in a straight line. The travelled path is kept
 ## as a continuous pencil line. Touch + mouse supported.
 
+const GAME_VERSION := "dev"   # stamped with the CI build number on release
 const TILE := 36
 const COLS := 20
 const ROWS := 20
@@ -112,7 +113,30 @@ var slot_buttons: Array = []
 func _ready() -> void:
 	randomize()
 	_build_ui()
+	_check_version_wipe()
 	_show_menu()
+
+
+# Wipe local save slots whenever the build version changes.
+func _check_version_wipe() -> void:
+	var stored := ""
+	if FileAccess.file_exists("user://version.txt"):
+		var f := FileAccess.open("user://version.txt", FileAccess.READ)
+		if f:
+			stored = f.get_as_text().strip_edges()
+			f.close()
+	if stored == GAME_VERSION:
+		return
+	var d := DirAccess.open("user://")
+	if d:
+		for i in 3:
+			var fname := "slot_%d.save" % i
+			if d.file_exists(fname):
+				d.remove(fname)
+	var wf := FileAccess.open("user://version.txt", FileAccess.WRITE)
+	if wf:
+		wf.store_string(GAME_VERSION)
+		wf.close()
 
 
 # =====================================================================
@@ -176,10 +200,13 @@ func _build_ui() -> void:
 	stitle.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	slot_buttons = []
 	for i in 3:
-		var sbtn := _make_button(slots_ui, "", Vector2(100, 340 + i * 160), Vector2(520, 130))
-		sbtn.add_theme_font_size_override("font_size", 26)
+		var sbtn := _make_button(slots_ui, "", Vector2(50, 330 + i * 160), Vector2(470, 130))
+		sbtn.add_theme_font_size_override("font_size", 24)
 		sbtn.pressed.connect(_on_slot_pressed.bind(i))
 		slot_buttons.append(sbtn)
+		var del := _make_button(slots_ui, "Изтрий", Vector2(535, 330 + i * 160), Vector2(135, 130))
+		del.add_theme_font_size_override("font_size", 22)
+		del.pressed.connect(_delete_slot.bind(i))
 	var back_btn := _make_button(slots_ui, "Назад", Vector2(260, 900), Vector2(200, 80))
 	back_btn.add_theme_font_size_override("font_size", 26)
 	back_btn.pressed.connect(_show_menu)
@@ -388,6 +415,16 @@ func _load_slot(i: int):
 	var txt := f.get_as_text()
 	f.close()
 	return JSON.parse_string(txt)
+
+
+func _delete_slot(i: int) -> void:
+	var fname := "slot_%d.save" % i
+	var d := DirAccess.open("user://")
+	if d and d.file_exists(fname):
+		d.remove(fname)
+	if current_slot == i:
+		current_slot = -1
+	_refresh_slots()
 
 
 func _refresh_slots() -> void:

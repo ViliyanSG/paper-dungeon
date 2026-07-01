@@ -16,6 +16,9 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Stamp build version
+        run: sed -i 's/GAME_VERSION := "dev"/GAME_VERSION := "${{ github.run_number }}"/' main.gd
+
       - name: Export (Windows + Linux)
         id: export
         uses: firebelley/godot-export@v6.0.0
