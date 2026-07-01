@@ -54,7 +54,7 @@ var SPRITE_PAL := {
 	"Q": Color8(106, 98, 88),
 }
 
-enum S { MENU, SLOTS, PLAYING }
+enum S { MENU, SLOTS, CLASS, PLAYING }
 
 # ---- Game state ----
 var state := S.MENU
@@ -62,6 +62,15 @@ var current_slot := -1
 var level := 1
 var pending_advance := false
 var pending_respawn := false
+
+# ---- Hero class + abilities ----
+var hero_class := "knight"
+var knight_shield := false        # free enemy kill available this level
+var wall_pass_available := false  # ranger: pass a wall once per level
+var wall_pass_armed := false
+var mage_casts := 0               # mage: ranged kills left this turn
+var casting := false
+var _ignore_walls := false
 
 var player := {}
 var current_n := 0
@@ -82,12 +91,14 @@ var log_lines: Array[String] = []
 var game_ui: Control
 var menu_ui: Control
 var slots_ui: Control
+var class_ui: Control
 var hp_label: Label
 var gold_label: Label
 var level_label: Label
 var roll_button: Button
 var roll_result_label: Label
 var reset_button: Button
+var ability_button: Button
 var log_label: Label
 var slot_buttons: Array = []
 
@@ -129,6 +140,11 @@ func _build_ui() -> void:
 	reset_button.add_theme_font_size_override("font_size", 26)
 	reset_button.pressed.connect(_exit_to_menu)
 
+	ability_button = _make_button(game_ui, "", Vector2(20, 1010), Vector2(430, 70))
+	ability_button.add_theme_font_size_override("font_size", 24)
+	ability_button.pressed.connect(_on_ability)
+	ability_button.visible = false
+
 	log_label = _make_label(game_ui, Vector2(20, 1100), Vector2(680, 170), 22, C_TEXT)
 	log_label.vertical_alignment = VERTICAL_ALIGNMENT_TOP
 	log_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
@@ -161,6 +177,27 @@ func _build_ui() -> void:
 	var back_btn := _make_button(slots_ui, "Назад", Vector2(260, 900), Vector2(200, 80))
 	back_btn.add_theme_font_size_override("font_size", 26)
 	back_btn.pressed.connect(_show_menu)
+
+	# ---- Class select screen ----
+	class_ui = Control.new()
+	class_ui.set_anchors_preset(Control.PRESET_FULL_RECT)
+	class_ui.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	layer.add_child(class_ui)
+	var ctitle := _make_label(class_ui, Vector2(40, 150), Vector2(640, 70), 46, C_GOLD)
+	ctitle.text = "Избери клас"
+	ctitle.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	var kb := _make_button(class_ui, "РИЦАР\n10 HP · безплатно убийство 1/ниво", Vector2(70, 290), Vector2(580, 120))
+	kb.add_theme_font_size_override("font_size", 24)
+	kb.pressed.connect(_choose_class.bind("knight"))
+	var mb := _make_button(class_ui, "МАГЬОСНИК\n6 HP · 3 магии/ход, обхват 4", Vector2(70, 440), Vector2(580, 120))
+	mb.add_theme_font_size_override("font_size", 24)
+	mb.pressed.connect(_choose_class.bind("mage"))
+	var rb := _make_button(class_ui, "РЕЙНДЖЪР\n8 HP · +1 стъпка · през стена 1/ниво", Vector2(70, 590), Vector2(580, 120))
+	rb.add_theme_font_size_override("font_size", 22)
+	rb.pressed.connect(_choose_class.bind("ranger"))
+	var cback := _make_button(class_ui, "Назад", Vector2(260, 770), Vector2(200, 80))
+	cback.add_theme_font_size_override("font_size", 26)
+	cback.pressed.connect(_show_slots)
 
 
 func _make_label(parent: Control, pos: Vector2, sz: Vector2, font_size: int, color: Color) -> Label:
@@ -209,35 +246,110 @@ func _style_button(b: Button) -> void:
 # =====================================================================
 #  Screens / navigation
 # =====================================================================
-func _show_menu() -> void:
-	state = S.MENU
-	menu_ui.visible = true
-	slots_ui.visible = false
-	game_ui.visible = false
+func _set_screen(s: int) -> void:
+	state = s
+	menu_ui.visible = (s == S.MENU)
+	slots_ui.visible = (s == S.SLOTS)
+	class_ui.visible = (s == S.CLASS)
+	game_ui.visible = (s == S.PLAYING)
 	queue_redraw()
+
+
+func _show_menu() -> void:
+	_set_screen(S.MENU)
 
 
 func _show_slots() -> void:
 	_refresh_slots()
-	state = S.SLOTS
-	menu_ui.visible = false
-	slots_ui.visible = true
-	game_ui.visible = false
-	queue_redraw()
+	_set_screen(S.SLOTS)
+
+
+func _show_class() -> void:
+	_set_screen(S.CLASS)
 
 
 func _show_game() -> void:
-	state = S.PLAYING
-	menu_ui.visible = false
-	slots_ui.visible = false
-	game_ui.visible = true
-	queue_redraw()
+	_set_screen(S.PLAYING)
 
 
 func _on_slot_pressed(i: int) -> void:
 	current_slot = i
-	_begin_run(_load_slot(i))
+	var data = _load_slot(i)
+	if data is Dictionary and data.has("walls"):
+		_begin_run(data)      # resume existing run (class stored inside)
+		_show_game()
+	else:
+		_show_class()         # new game → pick a class first
+
+
+func _choose_class(c: String) -> void:
+	hero_class = c
+	_begin_run(null)
 	_show_game()
+
+
+func _class_hp(c: String) -> int:
+	match c:
+		"mage": return 6
+		"ranger": return 8
+		_: return 10
+
+
+func _on_ability() -> void:
+	if state != S.PLAYING or spinning or game_over:
+		return
+	match hero_class:
+		"mage":
+			if mage_casts <= 0:
+				return
+			casting = not casting
+			_update_ability_ui()
+			queue_redraw()
+		"ranger":
+			if not wall_pass_available:
+				return
+			wall_pass_armed = not wall_pass_armed
+			if awaiting_move:
+				_compute_options()
+			_update_ability_ui()
+			queue_redraw()
+
+
+func _update_ability_ui() -> void:
+	match hero_class:
+		"mage":
+			ability_button.visible = true
+			ability_button.disabled = mage_casts <= 0
+			ability_button.text = ("Магия %d" % mage_casts) + ("  •цел•" if casting else "")
+		"ranger":
+			ability_button.visible = true
+			ability_button.disabled = not wall_pass_available
+			if wall_pass_armed:
+				ability_button.text = "Стена: активна"
+			elif wall_pass_available:
+				ability_button.text = "Пробий стена (1)"
+			else:
+				ability_button.text = "Стена: ползвана"
+		_:
+			ability_button.visible = false
+
+
+func _try_cast(cell: Vector2i) -> void:
+	if mage_casts <= 0:
+		return
+	var e = entity_at(cell)
+	if e == null or e.type != "enemy":
+		return
+	var d := maxi(absi(cell.x - player.pos.x), absi(cell.y - player.pos.y))
+	if d > 4:
+		return
+	e.alive = false
+	mage_casts -= 1
+	add_log("Магия! Уби враг от разстояние.")
+	if mage_casts <= 0:
+		casting = false
+	_update_ability_ui()
+	queue_redraw()
 
 
 func _exit_to_menu() -> void:
@@ -286,9 +398,11 @@ func _begin_run(data) -> void:
 		_restore_state(data)            # resume the exact saved level + path
 		return
 	if data == null:
-		player = {"pos": Vector2i(0, 0), "hp": 10, "max_hp": 10, "atk": 3, "gold": 0}
+		var mh := _class_hp(hero_class)
+		player = {"pos": Vector2i(0, 0), "hp": mh, "max_hp": mh, "atk": 3, "gold": 0}
 		level = 1
 	else:
+		hero_class = data.get("class", hero_class)
 		player = {
 			"pos": Vector2i(0, 0),
 			"hp": int(data.get("hp", 10)),
@@ -315,6 +429,9 @@ func _serialize_state() -> Dictionary:
 		pth.append([c.x, c.y])
 	return {
 		"level": level,
+		"class": hero_class,
+		"shield": knight_shield,
+		"wallpass": wall_pass_available,
 		"gold": player.gold, "hp": player.hp, "max_hp": player.max_hp,
 		"entrance": [entrance_cell.x, entrance_cell.y],
 		"exit": [exit_cell.x, exit_cell.y],
@@ -327,6 +444,7 @@ func _serialize_state() -> Dictionary:
 
 func _restore_state(data: Dictionary) -> void:
 	level = int(data.get("level", 1))
+	hero_class = data.get("class", "knight")
 	entrance_cell = _to_vec(data.get("entrance", [0, 0]))
 	exit_cell = _to_vec(data.get("exit", [COLS - 1, ROWS - 1]))
 	player = {
@@ -362,11 +480,17 @@ func _restore_state(data: Dictionary) -> void:
 	game_over = false
 	pending_advance = false
 	pending_respawn = false
+	knight_shield = bool(data.get("shield", hero_class == "knight"))
+	wall_pass_available = bool(data.get("wallpass", hero_class == "ranger"))
+	wall_pass_armed = false
+	mage_casts = 3
+	casting = false
 	log_lines = []
 
 	add_log("Ниво %d. Хвърли зар за да продължиш." % level)
 	roll_button.disabled = false
 	roll_result_label.text = ""
+	_update_ability_ui()
 	update_hud()
 	queue_redraw()
 
@@ -394,6 +518,11 @@ func new_level() -> void:
 	game_over = false
 	pending_advance = false
 	pending_respawn = false
+	knight_shield = (hero_class == "knight")
+	wall_pass_available = (hero_class == "ranger")
+	wall_pass_armed = false
+	mage_casts = 3
+	casting = false
 	log_lines = []
 
 	_generate_level()
@@ -401,6 +530,7 @@ func new_level() -> void:
 	add_log("Ниво %d. Хвърли зар за да започнеш." % level)
 	roll_button.disabled = false
 	roll_result_label.text = ""
+	_update_ability_ui()
 	update_hud()
 	queue_redraw()
 
@@ -603,6 +733,7 @@ func _on_roll() -> void:
 	current_n = 1 + randi() % 6
 	diagonal = (current_n % 2) == 1
 	spinning = false
+	mage_casts = 3          # fresh casts for the new turn
 	_compute_options()
 
 	var mode_txt := "диагонал" if diagonal else "право"
@@ -612,6 +743,7 @@ func _on_roll() -> void:
 	else:
 		awaiting_move = true
 		add_log("Хвърли %d (%s). Избери накъде." % [current_n, mode_txt])
+	_update_ability_ui()
 	_update_roll_label()
 	queue_redraw()
 
@@ -619,7 +751,11 @@ func _on_roll() -> void:
 func _compute_options() -> void:
 	options = []
 	option_paths = {}
+	_ignore_walls = (hero_class == "ranger" and wall_pass_armed)
 	_explore(player.pos, current_n, Vector2i.ZERO, [], true)
+	if hero_class == "ranger":
+		_explore(player.pos, current_n + 1, Vector2i.ZERO, [], true)  # +1 step option
+	_ignore_walls = false
 	for cell in option_paths:
 		options.append(cell)
 
@@ -663,7 +799,7 @@ func _max_steps(from: Vector2i, d: Vector2i, n: int) -> int:
 		var np: Vector2i = p + d
 		if np.x < 0 or np.y < 0 or np.x >= COLS or np.y >= ROWS:
 			break
-		if is_wall(np):
+		if is_wall(np) and not _ignore_walls:
 			break  # walls block movement
 		p = np
 		k += 1
@@ -674,7 +810,7 @@ func _max_steps(from: Vector2i, d: Vector2i, n: int) -> int:
 #  Input — pick a destination option
 # =====================================================================
 func _unhandled_input(event: InputEvent) -> void:
-	if state != S.PLAYING:
+	if state != S.PLAYING or game_over or spinning:
 		return
 	var sp = null
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
@@ -683,14 +819,18 @@ func _unhandled_input(event: InputEvent) -> void:
 		sp = event.position
 	if sp == null:
 		return
-	if game_over or spinning or not awaiting_move:
-		return
 
 	var world: Vector2 = get_global_transform_with_canvas().affine_inverse() * sp
 	if world.y < GRID_TOP:
 		return
 	var cell := Vector2i(int(world.x / TILE), int((world.y - GRID_TOP) / TILE))
-	if cell in options:
+	if cell.x < 0 or cell.y < 0 or cell.x >= COLS or cell.y >= ROWS:
+		return
+
+	if casting:
+		_try_cast(cell)
+		return
+	if awaiting_move and cell in options:
 		_do_move(cell)
 
 
@@ -712,6 +852,16 @@ func _do_move(target: Vector2i) -> void:
 			break
 
 	update_hud()
+
+	# ranger: consume the wall-pass charge only if a wall was actually crossed
+	casting = false
+	if wall_pass_armed:
+		for c in full_path:
+			if is_wall(c):
+				wall_pass_available = false
+				break
+		wall_pass_armed = false
+	_update_ability_ui()
 
 	if pending_advance:
 		pending_advance = false
@@ -779,8 +929,12 @@ func _resolve_tile(cell: Vector2i) -> void:
 	ent.alive = false
 	match ent.type:
 		"enemy":
-			player.hp -= 1 + randi() % 6
-			_check_death()
+			if hero_class == "knight" and knight_shield:
+				knight_shield = false      # free kill, no damage
+				add_log("Щит! Уби враг без щета.")
+			else:
+				player.hp -= 1 + randi() % 6
+				_check_death()
 		"trap":
 			player.gold = maxi(0, player.gold - (1 + randi() % 6))
 		"coin":
@@ -912,6 +1066,14 @@ func _draw() -> void:
 		var oc := cell_center(opt)
 		draw_circle(oc, opt_r, Color(0.29, 0.49, 0.35, 0.30))
 		draw_arc(oc, opt_r, 0, TAU, 22, C_GREEN, 2.0)
+
+	# mage targeting — highlight enemies within range 4
+	if casting:
+		for e in entities:
+			if e.alive and e.type == "enemy":
+				var dd := maxi(absi(e.pos.x - player.pos.x), absi(e.pos.y - player.pos.y))
+				if dd <= 4:
+					draw_arc(cell_center(e.pos), TILE * 0.5, 0, TAU, 20, Color(0.85, 0.2, 0.28), 3.0)
 
 	# player (hero sprite)
 	_draw_sprite("player", cell_center(player.pos))
