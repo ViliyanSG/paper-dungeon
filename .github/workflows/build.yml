@@ -75,14 +75,19 @@ jobs:
             echo 'export/android/debug_keystore_pass = "android"'
           } > ~/.config/godot/editor_settings-4.tres
 
+      - name: Install Android SDK build tools 34
+        run: |
+          SDKM=$(find "$ANDROID_HOME" -name sdkmanager -type f 2>/dev/null | head -1)
+          echo "sdkmanager: $SDKM"
+          yes | "$SDKM" "platforms;android-34" "build-tools;34.0.0" 2>&1 | tail -3 || true
+          ls "$ANDROID_HOME/build-tools" || true
+
       - name: Export APK
         run: |
           mkdir -p build/android
-          echo "=== editor settings ==="; cat ~/.config/godot/editor_settings-4.tres
-          echo "=== templates ==="; ls -la ~/.local/share/godot/export_templates/4.3.stable/ | head -30
-          echo "=== keystore ==="; ls -la debug.keystore
           godot --headless --path . --import || true
-          godot --headless --path . --verbose --export-debug "Android" build/android/PaperDungeon.apk
+          godot --headless --path . --export-debug "Android" build/android/PaperDungeon.apk
+          ls -la build/android/
 
       - name: Upload APK to release
         uses: ncipollo/release-action@v1
