@@ -92,9 +92,9 @@ jobs:
       - name: Export APK
         run: |
           mkdir -p build/android
-          godot --headless --path . --import || true
-          godot --headless --path . --export-debug "Android" build/android/PaperDungeon.apk
-          ls -la build/android/
+          godot --headless --path . --import 2>&1 | tail -5 || true
+          godot --headless --path . --verbose --export-debug "Android" build/android/PaperDungeon.apk 2>&1 | grep -iE "error|warning|android|template|permission|feature|texture|etc|keystore|gradle|config|missing|invalid" | grep -ivE "Downloading|Unzipping|^\[=" | tail -40
+          ls -la build/android/ || true
 
       - name: Upload APK to release
         uses: ncipollo/release-action@v1
