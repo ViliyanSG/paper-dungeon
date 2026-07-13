@@ -1757,10 +1757,19 @@ func _draw() -> void:
 func _draw_die(center: Vector2, s: float, value: int, angle: float) -> void:
 	draw_set_transform(center, angle, Vector2.ONE)
 	var h := s * 0.5
-	draw_rect(Rect2(-h, -h, s, s), Color(0.957, 0.937, 0.882), true)
-	draw_rect(Rect2(-h, -h, s, s), C_INK, false, 3.0)
+	var bw := s * 0.10
+	# bone face
+	draw_rect(Rect2(-h, -h, s, s), Color8(240, 231, 208), true)
+	# pixel bevel (light top-left, dark bottom-right)
+	draw_rect(Rect2(-h, -h, s, bw), Color8(255, 250, 234), true)
+	draw_rect(Rect2(-h, -h, bw, s), Color8(255, 250, 234), true)
+	draw_rect(Rect2(-h, h - bw, s, bw), Color8(196, 182, 148), true)
+	draw_rect(Rect2(h - bw, -h, bw, s), Color8(196, 182, 148), true)
+	# gold border (matches the buttons)
+	draw_rect(Rect2(-h, -h, s, s), Color8(201, 162, 39), false, 4.0)
+	# square pips (pixel style)
 	var d := s * 0.27
-	var pr := s * 0.085
+	var pr := s * 0.10
 	var layouts := {
 		1: [Vector2(0, 0)],
 		2: [Vector2(-d, -d), Vector2(d, d)],
@@ -1770,7 +1779,7 @@ func _draw_die(center: Vector2, s: float, value: int, angle: float) -> void:
 		6: [Vector2(-d, -d), Vector2(d, -d), Vector2(-d, 0), Vector2(d, 0), Vector2(-d, d), Vector2(d, d)],
 	}
 	for p in layouts.get(value, layouts[1]):
-		draw_circle(p, pr, C_INK)
+		draw_rect(Rect2(p.x - pr, p.y - pr, pr * 2.0, pr * 2.0), C_INK, true)
 	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 
 
