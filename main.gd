@@ -1512,9 +1512,14 @@ func _step_enemy(e: Dictionary) -> void:
 		return
 	var target: Vector2i = e.pos + dir
 	if target == player.pos:
-		player.hp -= 1 + randi() % 6
 		_sfx("hit")
-		_check_death()
+		if hero_class == "knight" and knight_shield:
+			knight_shield = false      # shield absorbs the hit first
+			add_log(t("log_shield"))
+			_update_ability_ui()
+		else:
+			player.hp -= 1 + randi() % 6
+			_check_death()
 		return
 	if target.x < 0 or target.y < 0 or target.x >= COLS or target.y >= ROWS:
 		return
