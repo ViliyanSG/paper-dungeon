@@ -131,7 +131,6 @@ var current_slot := -1
 var level := 1
 var pending_advance := false
 var pending_respawn := false
-var enemy_turn := false
 var die_value := 1
 var die_angle := 0.0
 var show_die := false
@@ -271,7 +270,7 @@ func _build_ui() -> void:
 	gold_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 
 	roll_button = _make_button(game_ui, "Хвърли зар", Vector2(20, 870), Vector2(430, 120))
-	roll_button.pressed.connect(_on_main_button)
+	roll_button.pressed.connect(_on_roll)
 
 	roll_result_label = _make_label(game_ui, Vector2(470, 958), Vector2(230, 36), 26, C_CREAM)
 	roll_result_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -1024,7 +1023,6 @@ func _restore_state(data: Dictionary) -> void:
 	mage_casts = int(data.get("casts", 3))
 	mage_turn_cast = false
 	casting = false
-	enemy_turn = false
 	show_die = false
 	die_angle = 0.0
 	log_lines = []
@@ -1066,7 +1064,6 @@ func new_level() -> void:
 	mage_casts = 3
 	mage_turn_cast = false
 	casting = false
-	enemy_turn = false
 	show_die = false
 	die_angle = 0.0
 	log_lines = []
@@ -1429,9 +1426,8 @@ func _do_move(target: Vector2i) -> void:
 	if pending_advance:
 		pending_advance = false
 		level += 1
-		player.hp = player.max_hp
 		_sfx("win")
-		new_level()
+		new_level()             # HP carries over to the next floor
 		add_log(t("log_win") % level)
 		return
 
@@ -1450,8 +1446,9 @@ func _do_move(target: Vector2i) -> void:
 		if hd != 0:
 			msg += t("log_hp") % hd
 		add_log(msg)
-		enemy_turn = _has_living_enemies()
-		_update_main_button()
+		if _enemy_phase():      # enemies move immediately after your move
+			return
+		roll_button.disabled = false
 	_update_roll_label()
 	queue_redraw()
 
@@ -1480,45 +1477,26 @@ func _update_roll_label() -> void:
 	roll_result_label.text = t("mode_diag") if diagonal else t("mode_straight")
 
 
-func _on_main_button() -> void:
-	if enemy_turn:
-		_enemies_move()
-	else:
-		_on_roll()
-
-
 func _update_main_button() -> void:
-	if enemy_turn:
-		roll_button.text = t("ui_enemies")
-		roll_button.disabled = false
-	else:
-		roll_button.text = t("ui_roll")
-		roll_button.disabled = awaiting_move or spinning or game_over
+	roll_button.text = t("ui_roll")
+	roll_button.disabled = awaiting_move or spinning or game_over
 
 
-func _has_living_enemies() -> bool:
-	for e in entities:
-		if e.alive and e.type == "enemy":
-			return true
-	return false
-
-
-func _enemies_move() -> void:
-	if not enemy_turn or spinning or game_over:
-		return
-	_sfx("step")
+# Move every enemy one step right after the player moves.
+# Returns true if the player died and the floor restarted.
+func _enemy_phase() -> bool:
+	if game_over:
+		return false
 	for e in entities:
 		if e.alive and e.type == "enemy":
 			_step_enemy(e)
 			if game_over:
 				break
+	update_hud()
 	if pending_respawn:
 		_do_respawn()
-		return
-	enemy_turn = false
-	update_hud()
-	_update_main_button()
-	queue_redraw()
+		return true
+	return false
 
 
 func _step_enemy(e: Dictionary) -> void:
