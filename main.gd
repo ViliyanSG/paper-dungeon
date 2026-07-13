@@ -992,8 +992,8 @@ func is_wall(cell: Vector2i) -> bool:
 # Regenerates until the exit is reachable from the entrance.
 func _generate_level() -> void:
 	var entrance := entrance_cell
-	var target := int(COLS * ROWS * 0.15)
-	for attempt in 30:
+	var target := int(COLS * ROWS * 0.11)
+	for attempt in 40:
 		walls = {}
 		var placed := 0
 		var tries := 0
@@ -1006,7 +1006,7 @@ func _generate_level() -> void:
 				walls[c] = true
 			placed += wall.size()
 		var reach := _reachable(entrance)
-		if reach.has(exit_cell):
+		if reach.has(exit_cell) and _all_free_reachable(reach):
 			_populate_entities(reach)
 			return
 	# fallback: no walls at all
@@ -1014,21 +1014,33 @@ func _generate_level() -> void:
 	_populate_entities(_reachable(entrance))
 
 
-# Lay one wall: a 1-cell-thick line that runs straight and occasionally turns
-# 90° (an L / gentle snake). Never forms a 2x2 block and stays isolated from
-# other walls by at least one empty cell.
+# Every non-wall cell must be reachable — rejects sealed-off pockets/rooms.
+func _all_free_reachable(reach: Dictionary) -> bool:
+	for y in ROWS:
+		for x in COLS:
+			var c := Vector2i(x, y)
+			if not is_wall(c) and not reach.has(c):
+				return false
+	return true
+
+
+# Lay one wall: a 1-cell-thick line with at most one 90° turn (a straight line
+# or an L). Never forms a 2x2 block, stays >=2 cells from the border and from
+# any other wall — so corridors are always >=2 wide (diagonal moves possible)
+# and no wall can enclose a sealed room.
 func _make_wall() -> Array:
 	var cells := {}
 	var ordered: Array = []
-	var cur := Vector2i(randi() % COLS, randi() % ROWS)
+	var cur := Vector2i(2 + randi() % (COLS - 4), 2 + randi() % (ROWS - 4))
 	if not _wall_cell_ok(cur, cells):
 		return []
 	cells[cur] = true
 	ordered.append(cur)
 
 	var dir := _rand_axis_dir()
-	var total_len := 4 + randi() % 8     # 4..11 cells
-	var until_bend := 3 + randi() % 4    # run straight a bit before turning
+	var total_len := 4 + randi() % 6     # 4..9 cells
+	var bends_left := 1                  # at most one turn (no rings / notches)
+	var until_bend := 2 + randi() % 3
 	while ordered.size() < total_len:
 		var nxt: Vector2i = cur + dir
 		if not _wall_cell_ok(nxt, cells):
@@ -1037,22 +1049,23 @@ func _make_wall() -> Array:
 		ordered.append(nxt)
 		cur = nxt
 		until_bend -= 1
-		if until_bend <= 0 and randi() % 100 < 45:
+		if bends_left > 0 and until_bend <= 0 and randi() % 100 < 35:
 			dir = _perp(dir)
-			until_bend = 3 + randi() % 4
+			bends_left -= 1
 	return ordered
 
 
 func _wall_cell_ok(cell: Vector2i, cells: Dictionary) -> bool:
-	if cell.x < 0 or cell.y < 0 or cell.x >= COLS or cell.y >= ROWS:
+	# keep walls at least 2 cells away from the terrain border
+	if cell.x < 2 or cell.y < 2 or cell.x >= COLS - 2 or cell.y >= ROWS - 2:
 		return false
 	if cell == entrance_cell or cell == exit_cell:
 		return false
 	if walls.has(cell) or cells.has(cell):
 		return false
-	# isolation: no committed wall (from another wall) in the 8-neighbourhood
-	for dy in range(-1, 2):
-		for dx in range(-1, 2):
+	# at least 2 empty cells between this wall and any OTHER wall
+	for dy in range(-2, 3):
+		for dx in range(-2, 3):
 			if walls.has(cell + Vector2i(dx, dy)):
 				return false
 	# keep 1-thick: adding this cell must not complete any 2x2 block
