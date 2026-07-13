@@ -32,6 +32,10 @@ const C_PANEL := Color(0.172, 0.149, 0.125)
 const C_BG := Color(0.13, 0.12, 0.11)      # dark stone backdrop
 const C_BG_LO := Color(0.09, 0.08, 0.075)  # mortar
 const C_BG_HI := Color(0.18, 0.165, 0.15)  # brick top edge
+# design-system roles
+const C_ACCENT := Color(0.910, 0.765, 0.290) # gold accent text
+const C_CREAM := Color(0.910, 0.874, 0.784)  # primary text
+const C_MUTED := Color(0.604, 0.561, 0.478)  # muted text
 
 # ---- Pixel sprites (8x8 maps + palette) ----
 const SPRITES := {
@@ -71,39 +75,41 @@ const STRINGS := {
 	"ui_settings": ["Settings", "Настройки", "Paramètres", "Einstellungen"],
 	"ui_choose_slot": ["Choose a slot", "Избери слот", "Choisir un slot", "Slot wählen"],
 	"ui_back": ["Back", "Назад", "Retour", "Zurück"],
-	"ui_delete": ["Delete", "Изтрий", "Supprimer", "Löschen"],
-	"ui_slot_empty": ["Slot %d — empty", "Слот %d — празен", "Slot %d — vide", "Slot %d — leer"],
-	"ui_slot_info": ["Slot %d — level %d · GP %d", "Слот %d — ниво %d · GP %d", "Slot %d — niveau %d · GP %d", "Slot %d — Level %d · GP %d"],
+	"ui_slot": ["Slot", "Слот", "Slot", "Slot"],
+	"ui_new_game": ["+ New game", "+ Нова игра", "+ Nouvelle partie", "+ Neues Spiel"],
 	"ui_choose_class": ["Choose a class", "Избери клас", "Choisir une classe", "Klasse wählen"],
-	"ui_knight": ["KNIGHT\n10 HP · free kill 1/lvl", "РИЦАР\n10 HP · безплатно убийство 1/ниво", "CHEVALIER\n10 HP · kill gratuit 1/niv", "RITTER\n10 HP · Gratis-Kill 1/Lvl"],
-	"ui_mage": ["MAGE\n6 HP · 3 spells/lvl (1/turn), range 4", "МАГЬОСНИК\n6 HP · 3 магии/ниво (1/ход), обхват 4", "MAGE\n6 HP · 3 sorts/niv (1/tour), portée 4", "MAGIER\n6 HP · 3 Zauber/Lvl (1/Zug), Reichw. 4"],
-	"ui_ranger": ["RANGER\n8 HP · +1 step · wall hole 1/lvl", "РЕЙНДЖЪР\n8 HP · +1 стъпка · дупка в стена 1/ниво", "RÔDEUR\n8 HP · +1 pas · trou mur 1/niv", "WALDLÄUFER\n8 HP · +1 Schritt · Wandloch 1/Lvl"],
+	"cls_knight_name": ["KNIGHT", "РИЦАР", "CHEVALIER", "RITTER"],
+	"cls_knight_desc": ["Free kill 1/floor", "Безплатно убийство 1/етаж", "Kill gratuit 1/étage", "Gratis-Kill 1/Ebene"],
+	"cls_mage_name": ["MAGE", "МАГЬОСНИК", "MAGE", "MAGIER"],
+	"cls_mage_desc": ["Firebolt · 3/floor, range 4", "Firebolt · 3/етаж, обхват 4", "Firebolt · 3/étage, portée 4", "Firebolt · 3/Ebene, Reichw. 4"],
+	"cls_ranger_name": ["RANGER", "РЕЙНДЖЪР", "RÔDEUR", "WALDLÄUFER"],
+	"cls_ranger_desc": ["+1 step · break wall 1/floor", "+1 стъпка · чупи стена 1/етаж", "+1 pas · casse mur 1/étage", "+1 Schritt · Wand 1/Ebene"],
 	"ui_roll": ["Roll die", "Хвърли зар", "Lancer le dé", "Würfeln"],
 	"ui_exit": ["Exit", "Излез", "Quitter", "Verlassen"],
 	"ui_language": ["Language", "Език", "Langue", "Sprache"],
 	"ui_music": ["Music", "Музика", "Musique", "Musik"],
 	"ui_sound": ["Sound", "Звук", "Son", "Ton"],
-	"hud_level": ["Level %d", "Ниво %d", "Niveau %d", "Level %d"],
+	"hud_level": ["Floor %d", "Етаж %d", "Étage %d", "Ebene %d"],
 	"mode_diag": ["diagonal", "диагонал", "diagonale", "diagonal"],
 	"mode_straight": ["straight", "право", "droite", "gerade"],
 	"ab_shield_ready": ["Shield: ready", "Щит: готов", "Bouclier: prêt", "Schild: bereit"],
 	"ab_shield_used": ["Shield: used", "Щит: ползван", "Bouclier: usé", "Schild: benutzt"],
-	"ab_magic": ["Magic %d", "Магия %d", "Magie %d", "Magie %d"],
+	"ab_magic": ["Firebolt %d", "Firebolt %d", "Firebolt %d", "Firebolt %d"],
 	"ab_target": ["  •target•", "  •цел•", "  •cible•", "  •Ziel•"],
 	"ab_wall": ["Break wall (1)", "Пробий стена (1)", "Percer mur (1)", "Wand brechen (1)"],
 	"ab_wall_target": ["Break: target", "Пробий: цел", "Percer: cible", "Brechen: Ziel"],
 	"ab_wall_used": ["Wall: used", "Стена: ползвана", "Mur: usé", "Wand: benutzt"],
-	"log_new_level": ["Level %d. Roll to begin.", "Ниво %d. Хвърли зар за да започнеш.", "Niveau %d. Lancez le dé.", "Level %d. Würfle zum Start."],
-	"log_resume": ["Level %d. Roll to continue.", "Ниво %d. Хвърли зар за да продължиш.", "Niveau %d. Lancez pour continuer.", "Level %d. Würfle weiter."],
+	"log_new_level": ["Floor %d. Roll to begin.", "Етаж %d. Хвърли зар за да започнеш.", "Étage %d. Lancez le dé.", "Ebene %d. Würfle zum Start."],
+	"log_resume": ["Floor %d. Roll to continue.", "Етаж %d. Хвърли зар за да продължиш.", "Étage %d. Lancez pour continuer.", "Ebene %d. Würfle weiter."],
 	"log_no_move": ["Nowhere to go. Roll again.", "Няма накъде. Хвърли пак.", "Aucun chemin. Relancez.", "Kein Weg. Nochmal würfeln."],
 	"log_rolled": ["Rolled %d (%s). Choose where.", "Хвърли %d (%s). Избери накъде.", "%d (%s). Choisissez où.", "%d (%s). Wähle wohin."],
 	"log_move": ["Move %s, %d steps.", "Ход %s, %d стъпки.", "Déplacement %s, %d pas.", "Zug %s, %d Schritte."],
 	"log_gp": [" %+d GP.", " %+d GP.", " %+d GP.", " %+d GP."],
 	"log_hp": [" %+d HP.", " %+d HP.", " %+d HP.", " %+d HP."],
-	"log_win": ["Reached the exit! Level %d begins.", "Стигна изхода! Ниво %d започва.", "Sortie atteinte ! Niveau %d.", "Ausgang erreicht! Level %d."],
-	"log_died": ["You died! Level restarts.", "Загина! Нивото започва наново.", "Vous êtes mort ! Niveau relancé.", "Gestorben! Level neu."],
+	"log_win": ["Reached the exit! Floor %d begins.", "Стигна изхода! Етаж %d започва.", "Sortie atteinte ! Étage %d.", "Ausgang erreicht! Ebene %d."],
+	"log_died": ["You died! Floor restarts.", "Загина! Етажът започва наново.", "Vous êtes mort ! Étage relancé.", "Gestorben! Ebene neu."],
 	"log_shield": ["Shield! Killed an enemy safely.", "Щит! Уби враг без щета.", "Bouclier ! Ennemi tué sans dégât.", "Schild! Gegner ohne Schaden."],
-	"log_magic": ["Magic! Killed an enemy at range.", "Магия! Уби враг от разстояние.", "Magie ! Ennemi tué à distance.", "Magie! Gegner aus Distanz."],
+	"log_magic": ["Firebolt! Killed an enemy at range.", "Firebolt! Уби враг от разстояние.", "Firebolt ! Ennemi tué à distance.", "Firebolt! Gegner aus Distanz."],
 	"log_drill": ["Broke a hole in the wall!", "Проби дупка в стената!", "Trou percé dans le mur !", "Loch in die Wand gebrochen!"],
 	"dir_right": ["right", "надясно", "droite", "rechts"],
 	"dir_left": ["left", "наляво", "gauche", "links"],
@@ -181,13 +187,21 @@ var settings_btn: Button
 var slots_title: Label
 var slots_back: Button
 var class_title: Label
-var knight_btn: Button
-var mage_btn: Button
-var ranger_btn: Button
 var class_back: Button
 var settings_title: Label
 var lang_title: Label
 var settings_back: Button
+# slot card pieces
+var slot_sprites: Array = []
+var slot_names: Array = []
+var slot_metas: Array = []
+var slot_hpbgs: Array = []
+var slot_hpfills: Array = []
+var slot_newlabels: Array = []
+# class card pieces
+var class_cards: Array = []
+var class_name_labels: Array = []
+var class_desc_labels: Array = []
 
 
 func _ready() -> void:
@@ -277,13 +291,14 @@ func _build_ui() -> void:
 	menu_ui.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	menu_ui.theme = ui_theme
 	layer.add_child(menu_ui)
-	var title := _make_label(menu_ui, Vector2(40, 280), Vector2(640, 90), 54, C_GOLD)
-	title.text = "PAPER DUNGEON"
+	var title := _make_label(menu_ui, Vector2(40, 230), Vector2(640, 170), 56, C_ACCENT)
+	title.text = "PAPER\nDUNGEON"
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	play_btn = _make_button(menu_ui, "", Vector2(210, 520), Vector2(300, 110))
+	play_btn = _make_button(menu_ui, "", Vector2(160, 570), Vector2(400, 120), "primary")
+	play_btn.add_theme_font_size_override("font_size", 40)
 	play_btn.pressed.connect(func(): _sfx("button"); _show_slots())
-	settings_btn = _make_button(menu_ui, "", Vector2(210, 660), Vector2(300, 100))
-	settings_btn.add_theme_font_size_override("font_size", 28)
+	settings_btn = _make_button(menu_ui, "", Vector2(210, 720), Vector2(300, 90), "secondary")
+	settings_btn.add_theme_font_size_override("font_size", 30)
 	settings_btn.pressed.connect(func(): _sfx("button"); _show_settings())
 
 	# ---- Slot select screen ----
@@ -292,22 +307,46 @@ func _build_ui() -> void:
 	slots_ui.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	slots_ui.theme = ui_theme
 	layer.add_child(slots_ui)
-	slots_title = _make_label(slots_ui, Vector2(40, 200), Vector2(640, 70), 46, C_GOLD)
+	slots_back = _make_button(slots_ui, "‹", Vector2(30, 30), Vector2(72, 72), "tertiary")
+	slots_back.add_theme_font_size_override("font_size", 48)
+	slots_back.pressed.connect(func(): _sfx("button"); _show_menu())
+	slots_title = _make_label(slots_ui, Vector2(60, 42), Vector2(600, 70), 40, C_ACCENT)
 	slots_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	slot_buttons = []
 	del_buttons = []
+	slot_sprites = []
+	slot_names = []
+	slot_metas = []
+	slot_hpbgs = []
+	slot_hpfills = []
+	slot_newlabels = []
 	for i in 3:
-		var sbtn := _make_button(slots_ui, "", Vector2(50, 330 + i * 160), Vector2(470, 130))
-		sbtn.add_theme_font_size_override("font_size", 24)
-		sbtn.pressed.connect(_on_slot_pressed.bind(i))
-		slot_buttons.append(sbtn)
-		var del := _make_button(slots_ui, "", Vector2(535, 330 + i * 160), Vector2(135, 130))
-		del.add_theme_font_size_override("font_size", 22)
+		var cy := 175 + i * 215
+		var card := _make_button(slots_ui, "", Vector2(40, cy), Vector2(640, 195), "secondary")
+		card.pressed.connect(_on_slot_pressed.bind(i))
+		slot_buttons.append(card)
+		var spr := TextureRect.new()
+		spr.position = Vector2(22, 50)
+		spr.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+		spr.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		card.add_child(spr)
+		slot_sprites.append(spr)
+		var nm := _make_label(card, Vector2(150, 26), Vector2(400, 44), 30, C_ACCENT)
+		nm.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		slot_names.append(nm)
+		var mt := _make_label(card, Vector2(150, 78), Vector2(400, 40), 24, C_CREAM)
+		mt.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		slot_metas.append(mt)
+		slot_hpbgs.append(_make_rect(card, Vector2(150, 130), Vector2(250, 18), Color8(58, 34, 34)))
+		slot_hpfills.append(_make_rect(card, Vector2(150, 130), Vector2(250, 18), C_RED))
+		var nl := _make_label(card, Vector2(0, 74), Vector2(640, 48), 30, C_MUTED)
+		nl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		nl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		slot_newlabels.append(nl)
+		var del := _make_button(card, "x", Vector2(560, 20), Vector2(60, 60), "danger")
+		del.add_theme_font_size_override("font_size", 30)
 		del.pressed.connect(_delete_slot.bind(i))
 		del_buttons.append(del)
-	slots_back = _make_button(slots_ui, "", Vector2(260, 900), Vector2(200, 80))
-	slots_back.add_theme_font_size_override("font_size", 26)
-	slots_back.pressed.connect(func(): _sfx("button"); _show_menu())
 
 	# ---- Class select screen ----
 	class_ui = Control.new()
@@ -315,20 +354,37 @@ func _build_ui() -> void:
 	class_ui.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	class_ui.theme = ui_theme
 	layer.add_child(class_ui)
-	class_title = _make_label(class_ui, Vector2(40, 150), Vector2(640, 70), 46, C_GOLD)
-	class_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	knight_btn = _make_button(class_ui, "", Vector2(70, 290), Vector2(580, 120))
-	knight_btn.add_theme_font_size_override("font_size", 24)
-	knight_btn.pressed.connect(_choose_class.bind("knight"))
-	mage_btn = _make_button(class_ui, "", Vector2(70, 440), Vector2(580, 120))
-	mage_btn.add_theme_font_size_override("font_size", 24)
-	mage_btn.pressed.connect(_choose_class.bind("mage"))
-	ranger_btn = _make_button(class_ui, "", Vector2(70, 590), Vector2(580, 120))
-	ranger_btn.add_theme_font_size_override("font_size", 22)
-	ranger_btn.pressed.connect(_choose_class.bind("ranger"))
-	class_back = _make_button(class_ui, "", Vector2(260, 770), Vector2(200, 80))
-	class_back.add_theme_font_size_override("font_size", 26)
+	class_back = _make_button(class_ui, "‹", Vector2(30, 30), Vector2(72, 72), "tertiary")
+	class_back.add_theme_font_size_override("font_size", 48)
 	class_back.pressed.connect(func(): _sfx("button"); _show_slots())
+	class_title = _make_label(class_ui, Vector2(60, 42), Vector2(600, 70), 40, C_ACCENT)
+	class_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	class_cards = []
+	class_name_labels = []
+	class_desc_labels = []
+	var classes := ["knight", "mage", "ranger"]
+	var class_hp := [10, 6, 8]
+	for i in 3:
+		var cy := 165 + i * 215
+		var card := _make_button(class_ui, "", Vector2(40, cy), Vector2(640, 195), "primary")
+		card.pressed.connect(_choose_class.bind(classes[i]))
+		class_cards.append(card)
+		var spr := TextureRect.new()
+		spr.texture = _sprite_texture(classes[i], 8)
+		spr.position = Vector2(22, 50)
+		spr.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+		spr.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		card.add_child(spr)
+		var nm := _make_label(card, Vector2(150, 22), Vector2(460, 44), 30, C_ACCENT)
+		nm.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		class_name_labels.append(nm)
+		var pips: int = class_hp[i] / 2
+		for pi in pips:
+			_make_rect(card, Vector2(150 + pi * 30, 82), Vector2(22, 22), C_RED)
+		var ds := _make_label(card, Vector2(150, 118), Vector2(470, 60), 22, C_CREAM)
+		ds.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		ds.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		class_desc_labels.append(ds)
 
 	# ---- Settings screen ----
 	settings_ui = Control.new()
@@ -336,26 +392,26 @@ func _build_ui() -> void:
 	settings_ui.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	settings_ui.theme = ui_theme
 	layer.add_child(settings_ui)
-	settings_title = _make_label(settings_ui, Vector2(40, 180), Vector2(640, 70), 46, C_GOLD)
+	settings_back = _make_button(settings_ui, "‹", Vector2(30, 30), Vector2(72, 72), "tertiary")
+	settings_back.add_theme_font_size_override("font_size", 48)
+	settings_back.pressed.connect(func(): _sfx("button"); _show_menu())
+	settings_title = _make_label(settings_ui, Vector2(60, 42), Vector2(600, 70), 40, C_ACCENT)
 	settings_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	lang_title = _make_label(settings_ui, Vector2(40, 320), Vector2(640, 50), 30, C_TEXT)
+	lang_title = _make_label(settings_ui, Vector2(40, 190), Vector2(640, 50), 30, C_CREAM)
 	lang_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	var lang_names := ["English", "Български", "Français", "Deutsch"]
 	for i in 4:
 		var col := i % 2
 		var row := i / 2
-		var lb := _make_button(settings_ui, lang_names[i], Vector2(90 + col * 290, 400 + row * 130), Vector2(270, 110))
+		var lb := _make_button(settings_ui, lang_names[i], Vector2(90 + col * 290, 260 + row * 130), Vector2(270, 110), "secondary")
 		lb.add_theme_font_size_override("font_size", 28)
 		lb.pressed.connect(_set_language.bind(LANGS[i]))
-	music_btn = _make_button(settings_ui, "", Vector2(90, 680), Vector2(540, 90))
-	music_btn.add_theme_font_size_override("font_size", 28)
+	music_btn = _make_button(settings_ui, "", Vector2(90, 550), Vector2(540, 90), "secondary")
+	music_btn.add_theme_font_size_override("font_size", 30)
 	music_btn.pressed.connect(_toggle_music)
-	sfx_btn = _make_button(settings_ui, "", Vector2(90, 790), Vector2(540, 90))
-	sfx_btn.add_theme_font_size_override("font_size", 28)
+	sfx_btn = _make_button(settings_ui, "", Vector2(90, 660), Vector2(540, 90), "secondary")
+	sfx_btn.add_theme_font_size_override("font_size", 30)
 	sfx_btn.pressed.connect(_toggle_sfx)
-	settings_back = _make_button(settings_ui, "", Vector2(260, 910), Vector2(200, 80))
-	settings_back.add_theme_font_size_override("font_size", 26)
-	settings_back.pressed.connect(func(): _sfx("button"); _show_menu())
 
 
 func _make_label(parent: Control, pos: Vector2, sz: Vector2, font_size: int, color: Color) -> Label:
@@ -368,27 +424,38 @@ func _make_label(parent: Control, pos: Vector2, sz: Vector2, font_size: int, col
 	return l
 
 
-func _make_button(parent: Control, text: String, pos: Vector2, sz: Vector2) -> Button:
+func _make_button(parent: Control, text: String, pos: Vector2, sz: Vector2, kind := "primary") -> Button:
 	var b := Button.new()
 	b.text = text
 	b.position = pos
 	b.size = sz
-	b.add_theme_font_size_override("font_size", 32)
-	_style_button(b)
+	b.add_theme_font_size_override("font_size", 28)
+	_style_button(b, kind)
 	parent.add_child(b)
 	return b
 
 
-func _style_button(b: Button) -> void:
+func _style_button(b: Button, kind := "primary") -> void:
+	var bg := Color8(58, 44, 30)
+	var border := Color8(201, 162, 39)
+	var bw := 3
+	var fg := Color8(244, 221, 132)
+	match kind:
+		"secondary":
+			bg = Color8(42, 36, 32); border = Color8(106, 90, 68); bw = 2; fg = Color8(232, 223, 200)
+		"tertiary":
+			bg = Color8(33, 29, 24); border = Color8(74, 66, 58); bw = 2; fg = Color8(200, 187, 160)
+		"danger":
+			bg = Color8(42, 22, 22); border = Color8(178, 58, 72); bw = 2; fg = Color8(224, 86, 106)
 	var sb := StyleBoxFlat.new()
-	sb.bg_color = Color8(58, 44, 30)
-	sb.set_border_width_all(3)
-	sb.border_color = Color8(201, 162, 39)
-	sb.set_corner_radius_all(4)
+	sb.bg_color = bg
+	sb.set_border_width_all(bw)
+	sb.border_color = border
+	sb.set_corner_radius_all(5)
 	var hover: StyleBoxFlat = sb.duplicate()
-	hover.bg_color = Color8(82, 62, 40)
+	hover.bg_color = bg.lightened(0.08)
 	var press: StyleBoxFlat = sb.duplicate()
-	press.bg_color = Color8(40, 30, 20)
+	press.bg_color = bg.darkened(0.15)
 	var dis: StyleBoxFlat = sb.duplicate()
 	dis.bg_color = Color8(48, 42, 36)
 	dis.border_color = Color8(96, 86, 60)
@@ -396,9 +463,37 @@ func _style_button(b: Button) -> void:
 	b.add_theme_stylebox_override("hover", hover)
 	b.add_theme_stylebox_override("pressed", press)
 	b.add_theme_stylebox_override("disabled", dis)
-	b.add_theme_color_override("font_color", Color8(244, 221, 132))
-	b.add_theme_color_override("font_hover_color", Color8(255, 238, 160))
+	b.add_theme_color_override("font_color", fg)
+	b.add_theme_color_override("font_hover_color", fg.lightened(0.15))
 	b.add_theme_color_override("font_disabled_color", Color8(140, 128, 104))
+
+
+func _sprite_texture(sprite_name: String, px: int) -> ImageTexture:
+	var map: Array = SPRITES[sprite_name]
+	var rows := map.size()
+	var cols: int = map[0].length()
+	var img := Image.create(cols * px, rows * px, false, Image.FORMAT_RGBA8)
+	img.fill(Color(0, 0, 0, 0))
+	for y in rows:
+		var row: String = map[y]
+		for xx in cols:
+			var ch := row[xx]
+			if SPRITE_PAL.has(ch):
+				var col: Color = SPRITE_PAL[ch]
+				for dy in px:
+					for dx in px:
+						img.set_pixel(xx * px + dx, y * px + dy, col)
+	return ImageTexture.create_from_image(img)
+
+
+func _make_rect(parent: Control, pos: Vector2, sz: Vector2, color: Color) -> ColorRect:
+	var r := ColorRect.new()
+	r.position = pos
+	r.size = sz
+	r.color = color
+	r.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	parent.add_child(r)
+	return r
 
 
 # =====================================================================
@@ -460,19 +555,15 @@ func _apply_language() -> void:
 	play_btn.text = t("ui_play")
 	settings_btn.text = t("ui_settings")
 	slots_title.text = t("ui_choose_slot")
-	slots_back.text = t("ui_back")
-	for b in del_buttons:
-		b.text = t("ui_delete")
 	class_title.text = t("ui_choose_class")
-	knight_btn.text = t("ui_knight")
-	mage_btn.text = t("ui_mage")
-	ranger_btn.text = t("ui_ranger")
-	class_back.text = t("ui_back")
 	settings_title.text = t("ui_settings")
 	lang_title.text = t("ui_language")
-	settings_back.text = t("ui_back")
 	roll_button.text = t("ui_roll")
 	reset_button.text = t("ui_exit")
+	var classes := ["knight", "mage", "ranger"]
+	for i in 3:
+		class_name_labels[i].text = t("cls_%s_name" % classes[i])
+		class_desc_labels[i].text = t("cls_%s_desc" % classes[i])
 	_update_audio_buttons()
 	_refresh_slots()
 	if state == S.PLAYING:
@@ -812,10 +903,25 @@ func _delete_slot(i: int) -> void:
 func _refresh_slots() -> void:
 	for i in 3:
 		var d = _load_slot(i)
-		if d == null:
-			slot_buttons[i].text = t("ui_slot_empty") % (i + 1)
+		var filled := d is Dictionary
+		slot_sprites[i].visible = filled
+		slot_names[i].visible = filled
+		slot_metas[i].visible = filled
+		slot_hpbgs[i].visible = filled
+		slot_hpfills[i].visible = filled
+		del_buttons[i].visible = filled
+		slot_newlabels[i].visible = not filled
+		if filled:
+			var cls: String = d.get("class", "knight")
+			slot_sprites[i].texture = _sprite_texture(cls, 8)
+			slot_names[i].text = "%s %d · %s" % [t("ui_slot"), i + 1, t("cls_%s_name" % cls)]
+			slot_metas[i].text = (t("hud_level") % int(d.get("level", 1))) + " · %d GP" % int(d.get("gold", 0))
+			var mhp: int = maxi(1, int(d.get("max_hp", 10)))
+			var frac := clampf(float(int(d.get("hp", 10))) / mhp, 0.0, 1.0)
+			slot_hpfills[i].size = Vector2(250.0 * frac, 18)
 		else:
-			slot_buttons[i].text = t("ui_slot_info") % [i + 1, int(d.get("level", 1)), int(d.get("gold", 0))]
+			slot_newlabels[i].text = t("ui_new_game")
+		del_buttons[i].text = "x"
 
 
 func _begin_run(data) -> void:
