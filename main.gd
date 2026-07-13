@@ -52,6 +52,7 @@ const SPRITES := {
 	"ranger": ["...JJJJ.....", "..JJJJJJ....", ".JJffffJJ.w.", ".JJfKKfJJnw.", ".JJffffJJ.w.", "..jJJJJj.nw.", ".jJJJJJJj.w.", ".jJJJJJJjnw.", ".jJJJJJJj.w.", "..JJ..JJ....", "..JJ..JJ....", ".jjj..jjj..."],
 	"door": ["..DDDD..", ".DwwwwD.", "DwwwwwwD", "DwwwywwD", "DwwwwwwD", "DwwwwwwD", "DwwwwwwD", "DDDDDDDD"],
 	"stairs": ["........", "QQ......", "QqQQ....", "QqQqQQ..", "QqQqQqQQ", "QqQqQqQq", "QqQqQqQq", "QQQQQQQQ"],
+	"grave": ["...KKKKKK...", "..KqqqqqqK..", ".KqqqqqqqqK.", ".KqqqKKqqqK.", ".KqKKKKKKqK.", ".KqKKKKKKqK.", ".KqqqKKqqqK.", ".KqqqKKqqqK.", ".KqqqqqqqqK.", ".KQqqqqqqQK.", "..oooooooo..", ".oooooooooo."],
 }
 var SPRITE_PAL := {
 	"K": Color8(43, 43, 43), "g": Color8(205, 161, 42), "y": Color8(244, 221, 132),
@@ -86,6 +87,10 @@ const STRINGS := {
 	"cls_ranger_desc": ["+1 step · break wall 1/floor", "+1 стъпка · чупи стена 1/етаж", "+1 pas · casse mur 1/étage", "+1 Schritt · Wand 1/Ebene"],
 	"ui_roll": ["Roll die", "Хвърли зар", "Lancer le dé", "Würfeln"],
 	"ui_enemies": ["Enemies move", "Враговете мърдат", "Ennemis bougent", "Gegner ziehen"],
+	"ui_you_died": ["YOU DIED", "ЗАГИНА", "VOUS ÊTES MORT", "GESTORBEN"],
+	"ui_restart": ["Restart from Floor 1", "Отначало (Етаж 1)", "Recommencer (Étage 1)", "Neustart (Ebene 1)"],
+	"death_reached": ["Reached Floor %d · %d GP", "Стигна Етаж %d · %d GP", "Étage %d atteint · %d GP", "Ebene %d erreicht · %d GP"],
+	"death_hint": ["back to Floor 1 · 0 GP · base HP", "обратно на Етаж 1 · 0 GP · базово HP", "retour Étage 1 · 0 GP · PV de base", "zurück zu Ebene 1 · 0 GP · Basis-HP"],
 	"ui_exit": ["Exit", "Излез", "Quitter", "Verlassen"],
 	"ui_language": ["Language", "Език", "Langue", "Sprache"],
 	"ui_music": ["Music", "Музика", "Musique", "Musik"],
@@ -130,7 +135,6 @@ var locale := "en"
 var current_slot := -1
 var level := 1
 var pending_advance := false
-var pending_respawn := false
 var die_value := 1
 var die_angle := 0.0
 var show_die := false
@@ -195,6 +199,12 @@ var class_back: Button
 var settings_title: Label
 var lang_title: Label
 var settings_back: Button
+# death overlay
+var death_ui: Control
+var death_title: Label
+var death_summary: Label
+var death_restart_btn: Button
+var death_hint: Label
 # slot card pieces
 var slot_sprites: Array = []
 var slot_names: Array = []
@@ -417,6 +427,43 @@ func _build_ui() -> void:
 	sfx_btn.add_theme_font_size_override("font_size", 30)
 	sfx_btn.pressed.connect(_toggle_sfx)
 
+	# ---- Death overlay ----
+	death_ui = Control.new()
+	death_ui.set_anchors_preset(Control.PRESET_FULL_RECT)
+	death_ui.mouse_filter = Control.MOUSE_FILTER_STOP
+	death_ui.theme = ui_theme
+	death_ui.visible = false
+	layer.add_child(death_ui)
+	var dim := ColorRect.new()
+	dim.set_anchors_preset(Control.PRESET_FULL_RECT)
+	dim.color = Color(0.02, 0.02, 0.02, 0.78)
+	death_ui.add_child(dim)
+	var dpanel := Panel.new()
+	dpanel.position = Vector2(160, 380)
+	dpanel.size = Vector2(400, 500)
+	var dsb := StyleBoxFlat.new()
+	dsb.bg_color = Color8(33, 29, 24)
+	dsb.set_border_width_all(3)
+	dsb.border_color = Color8(201, 162, 39)
+	dsb.set_corner_radius_all(10)
+	dpanel.add_theme_stylebox_override("panel", dsb)
+	death_ui.add_child(dpanel)
+	var grave := TextureRect.new()
+	grave.texture = _sprite_texture("grave", 8)
+	grave.position = Vector2(152, 30)
+	grave.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	grave.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	dpanel.add_child(grave)
+	death_title = _make_label(dpanel, Vector2(0, 150), Vector2(400, 60), 48, Color8(224, 86, 106))
+	death_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	death_summary = _make_label(dpanel, Vector2(0, 225), Vector2(400, 40), 24, C_MUTED)
+	death_summary.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	death_restart_btn = _make_button(dpanel, "", Vector2(40, 300), Vector2(320, 90), "primary")
+	death_restart_btn.add_theme_font_size_override("font_size", 30)
+	death_restart_btn.pressed.connect(_restart_run)
+	death_hint = _make_label(dpanel, Vector2(0, 410), Vector2(400, 30), 18, C_MUTED)
+	death_hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+
 
 func _make_label(parent: Control, pos: Vector2, sz: Vector2, font_size: int, color: Color) -> Label:
 	var l := Label.new()
@@ -564,6 +611,9 @@ func _apply_language() -> void:
 	lang_title.text = t("ui_language")
 	roll_button.text = t("ui_roll")
 	reset_button.text = t("ui_exit")
+	death_title.text = t("ui_you_died")
+	death_restart_btn.text = t("ui_restart")
+	death_hint.text = t("death_hint")
 	var classes := ["knight", "mage", "ranger"]
 	for i in 3:
 		class_name_labels[i].text = t("cls_%s_name" % classes[i])
@@ -1016,7 +1066,8 @@ func _restore_state(data: Dictionary) -> void:
 	spinning = false
 	game_over = false
 	pending_advance = false
-	pending_respawn = false
+	if death_ui:
+		death_ui.visible = false
 	knight_shield = bool(data.get("shield", hero_class == "knight"))
 	wall_pass_available = bool(data.get("wallpass", hero_class == "ranger"))
 	drilling = false
@@ -1057,7 +1108,8 @@ func new_level() -> void:
 	spinning = false
 	game_over = false
 	pending_advance = false
-	pending_respawn = false
+	if death_ui:
+		death_ui.visible = false
 	knight_shield = (hero_class == "knight")
 	wall_pass_available = (hero_class == "ranger")
 	drilling = false
@@ -1431,10 +1483,6 @@ func _do_move(target: Vector2i) -> void:
 		add_log(t("log_win") % level)
 		return
 
-	if pending_respawn:
-		_do_respawn()
-		return
-
 	if not game_over:
 		var steps := full_path.size()
 		var first_dir: Vector2i = full_path[0] - start_pos if steps > 0 else Vector2i.ZERO
@@ -1446,8 +1494,7 @@ func _do_move(target: Vector2i) -> void:
 		if hd != 0:
 			msg += t("log_hp") % hd
 		add_log(msg)
-		if _enemy_phase():      # enemies move immediately after your move
-			return
+		_enemy_phase()          # enemies move immediately after your move
 		roll_button.disabled = false
 	_update_roll_label()
 	queue_redraw()
@@ -1484,19 +1531,11 @@ func _update_main_button() -> void:
 
 # Move every enemy one step right after the player moves.
 # Returns true if the player died and the floor restarted.
-func _enemy_phase() -> bool:
-	if game_over:
-		return false
+func _enemy_phase() -> void:
 	for e in entities:
 		if e.alive and e.type == "enemy":
 			_step_enemy(e)
-			if game_over:
-				break
 	update_hud()
-	if pending_respawn:
-		_do_respawn()
-		return true
-	return false
 
 
 func _step_enemy(e: Dictionary) -> void:
@@ -1512,15 +1551,7 @@ func _step_enemy(e: Dictionary) -> void:
 		return
 	var target: Vector2i = e.pos + dir
 	if target == player.pos:
-		_sfx("hit")
-		if hero_class == "knight" and knight_shield:
-			knight_shield = false      # shield absorbs the hit first
-			add_log(t("log_shield"))
-			_update_ability_ui()
-		else:
-			player.hp -= 1 + randi() % 6
-			_check_death()
-		return
+		return    # enemies don't damage on contact; you take damage by crossing them
 	if target.x < 0 or target.y < 0 or target.x >= COLS or target.y >= ROWS:
 		return
 	if is_wall(target):
@@ -1531,12 +1562,6 @@ func _step_enemy(e: Dictionary) -> void:
 	e.pos = target
 
 
-func _do_respawn() -> void:
-	pending_respawn = false
-	player.hp = player.max_hp
-	_sfx("death")
-	new_level()
-	add_log(t("log_died"))
 
 
 func _resolve_tile(cell: Vector2i) -> void:
@@ -1578,7 +1603,24 @@ func _check_death() -> void:
 		player.hp = 0
 		game_over = true
 		awaiting_move = false
-		pending_respawn = true
+		_show_death()
+
+
+func _show_death() -> void:
+	death_summary.text = t("death_reached") % [level, player.gold]
+	roll_button.disabled = true
+	death_ui.visible = true
+	_sfx("death")
+	queue_redraw()
+
+
+func _restart_run() -> void:
+	_sfx("button")
+	death_ui.visible = false
+	var mh := _class_hp(hero_class)
+	player = {"pos": Vector2i(0, 0), "hp": mh, "max_hp": mh, "atk": 3, "gold": 0}
+	level = 1
+	new_level()
 
 
 func _win() -> void:
