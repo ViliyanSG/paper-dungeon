@@ -85,6 +85,7 @@ const STRINGS := {
 	"cls_ranger_name": ["RANGER", "РЕЙНДЖЪР", "RÔDEUR", "WALDLÄUFER"],
 	"cls_ranger_desc": ["+1 step · break wall 1/floor", "+1 стъпка · чупи стена 1/етаж", "+1 pas · casse mur 1/étage", "+1 Schritt · Wand 1/Ebene"],
 	"ui_roll": ["Roll die", "Хвърли зар", "Lancer le dé", "Würfeln"],
+	"ui_enemies": ["Enemies move", "Враговете мърдат", "Ennemis bougent", "Gegner ziehen"],
 	"ui_exit": ["Exit", "Излез", "Quitter", "Verlassen"],
 	"ui_language": ["Language", "Език", "Langue", "Sprache"],
 	"ui_music": ["Music", "Музика", "Musique", "Musik"],
@@ -130,6 +131,10 @@ var current_slot := -1
 var level := 1
 var pending_advance := false
 var pending_respawn := false
+var enemy_turn := false
+var die_value := 1
+var die_angle := 0.0
+var show_die := false
 
 # ---- Hero class + abilities ----
 var hero_class := "knight"
@@ -266,12 +271,11 @@ func _build_ui() -> void:
 	gold_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 
 	roll_button = _make_button(game_ui, "Хвърли зар", Vector2(20, 870), Vector2(430, 120))
-	roll_button.pressed.connect(_on_roll)
+	roll_button.pressed.connect(_on_main_button)
 
-	roll_result_label = _make_label(game_ui, Vector2(470, 870), Vector2(230, 120), 34, C_GOLD)
+	roll_result_label = _make_label(game_ui, Vector2(470, 958), Vector2(230, 36), 26, C_CREAM)
 	roll_result_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	roll_result_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	roll_result_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 
 	reset_button = _make_button(game_ui, "Излез", Vector2(470, 1010), Vector2(230, 70))
 	reset_button.add_theme_font_size_override("font_size", 26)
@@ -1019,11 +1023,14 @@ func _restore_state(data: Dictionary) -> void:
 	mage_casts = int(data.get("casts", 3))
 	mage_turn_cast = false
 	casting = false
+	enemy_turn = false
+	show_die = false
+	die_angle = 0.0
 	log_lines = []
 
 	add_log(t("log_resume") % level)
-	roll_button.disabled = false
 	roll_result_label.text = ""
+	_update_main_button()
 	_update_ability_ui()
 	update_hud()
 	queue_redraw()
@@ -1058,13 +1065,16 @@ func new_level() -> void:
 	mage_casts = 3
 	mage_turn_cast = false
 	casting = false
+	enemy_turn = false
+	show_die = false
+	die_angle = 0.0
 	log_lines = []
 
 	_generate_level()
 
 	add_log(t("log_new_level") % level)
-	roll_button.disabled = false
 	roll_result_label.text = ""
+	_update_main_button()
 	_update_ability_ui()
 	update_hud()
 	queue_redraw()
@@ -1271,16 +1281,22 @@ func _on_roll() -> void:
 	spinning = true
 	roll_button.disabled = true
 	options = []
+	show_die = true
 	_sfx("roll")
 	queue_redraw()
 
 	var total := 16 + randi() % 8
 	for i in total:
-		roll_result_label.text = str(1 + randi() % 6)
+		die_value = 1 + randi() % 6
+		die_angle += 0.5
+		roll_result_label.text = ""
+		queue_redraw()
 		await get_tree().create_timer(0.05 + i * 0.004).timeout
 
 	current_n = 1 + randi() % 6
 	diagonal = (current_n % 2) == 1
+	die_value = current_n
+	die_angle = 0.0
 	spinning = false
 	if hero_class == "mage":
 		mage_turn_cast = true   # one cast available this turn
@@ -1419,15 +1435,10 @@ func _do_move(target: Vector2i) -> void:
 		return
 
 	if pending_respawn:
-		pending_respawn = false
-		player.hp = player.max_hp
-		_sfx("death")
-		new_level()
-		add_log(t("log_died"))
+		_do_respawn()
 		return
 
 	if not game_over:
-		roll_button.disabled = false
 		var steps := full_path.size()
 		var first_dir: Vector2i = full_path[0] - start_pos if steps > 0 else Vector2i.ZERO
 		var msg := t("log_move") % [_dir_word(first_dir), steps]
@@ -1438,6 +1449,8 @@ func _do_move(target: Vector2i) -> void:
 		if hd != 0:
 			msg += t("log_hp") % hd
 		add_log(msg)
+		enemy_turn = _has_living_enemies()
+		_update_main_button()
 	_update_roll_label()
 	queue_redraw()
 
@@ -1463,8 +1476,82 @@ func _dir_word(d: Vector2i) -> String:
 
 
 func _update_roll_label() -> void:
-	var mode_txt := t("mode_diag") if diagonal else t("mode_straight")
-	roll_result_label.text = "%d\n%s" % [current_n, mode_txt]
+	roll_result_label.text = t("mode_diag") if diagonal else t("mode_straight")
+
+
+func _on_main_button() -> void:
+	if enemy_turn:
+		_enemies_move()
+	else:
+		_on_roll()
+
+
+func _update_main_button() -> void:
+	if enemy_turn:
+		roll_button.text = t("ui_enemies")
+		roll_button.disabled = false
+	else:
+		roll_button.text = t("ui_roll")
+		roll_button.disabled = awaiting_move or spinning or game_over
+
+
+func _has_living_enemies() -> bool:
+	for e in entities:
+		if e.alive and e.type == "enemy":
+			return true
+	return false
+
+
+func _enemies_move() -> void:
+	if not enemy_turn or spinning or game_over:
+		return
+	_sfx("step")
+	for e in entities:
+		if e.alive and e.type == "enemy":
+			_step_enemy(e)
+			if game_over:
+				break
+	if pending_respawn:
+		_do_respawn()
+		return
+	enemy_turn = false
+	update_hud()
+	_update_main_button()
+	queue_redraw()
+
+
+func _step_enemy(e: Dictionary) -> void:
+	var dist := maxi(absi(e.pos.x - player.pos.x), absi(e.pos.y - player.pos.y))
+	var dir: Vector2i
+	if dist <= 4:
+		dir = Vector2i(signi(player.pos.x - e.pos.x), signi(player.pos.y - e.pos.y))
+	else:
+		var dirs: Array = ORTHO_DIRS + DIAG_DIRS
+		dir = dirs[randi() % dirs.size()]
+	if dir == Vector2i.ZERO:
+		return
+	var target: Vector2i = e.pos + dir
+	if target == player.pos:
+		player.hp -= 1 + randi() % 6
+		_sfx("hit")
+		_check_death()
+		return
+	if target.x < 0 or target.y < 0 or target.x >= COLS or target.y >= ROWS:
+		return
+	if is_wall(target):
+		return
+	var occ = entity_at(target)
+	if occ != null and occ.type == "enemy":
+		return
+	e.pos = target
+
+
+func _do_respawn() -> void:
+	pending_respawn = false
+	player.hp = player.max_hp
+	_sfx("death")
+	new_level()
+	add_log(t("log_died"))
 
 
 func _resolve_tile(cell: Vector2i) -> void:
@@ -1655,6 +1742,30 @@ func _draw() -> void:
 
 	# player (class-specific hero sprite)
 	_draw_sprite(hero_class, cell_center(player.pos))
+
+	# rolling die (bottom controls area)
+	if show_die:
+		_draw_die(Vector2(585, 908), 84.0, die_value, die_angle)
+
+
+func _draw_die(center: Vector2, s: float, value: int, angle: float) -> void:
+	draw_set_transform(center, angle, Vector2.ONE)
+	var h := s * 0.5
+	draw_rect(Rect2(-h, -h, s, s), Color(0.957, 0.937, 0.882), true)
+	draw_rect(Rect2(-h, -h, s, s), C_INK, false, 3.0)
+	var d := s * 0.27
+	var pr := s * 0.085
+	var layouts := {
+		1: [Vector2(0, 0)],
+		2: [Vector2(-d, -d), Vector2(d, d)],
+		3: [Vector2(-d, -d), Vector2(0, 0), Vector2(d, d)],
+		4: [Vector2(-d, -d), Vector2(d, -d), Vector2(-d, d), Vector2(d, d)],
+		5: [Vector2(-d, -d), Vector2(d, -d), Vector2(0, 0), Vector2(-d, d), Vector2(d, d)],
+		6: [Vector2(-d, -d), Vector2(d, -d), Vector2(-d, 0), Vector2(d, 0), Vector2(-d, d), Vector2(d, d)],
+	}
+	for p in layouts.get(value, layouts[1]):
+		draw_circle(p, pr, C_INK)
+	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 
 
 func _draw_dead(ctr: Vector2) -> void:
