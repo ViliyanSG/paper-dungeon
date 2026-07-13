@@ -243,13 +243,14 @@ func _build_ui() -> void:
 	var layer := CanvasLayer.new()
 	add_child(layer)
 
-	# pixel font applied to every screen via a shared Theme
-	var pf: FontFile = load("res://fonts/PixelOperator.ttf")
-	pf.antialiasing = TextServer.FONT_ANTIALIASING_NONE
-	pf.hinting = TextServer.HINTING_NONE
+	# Handjet pixel font (covers Latin + Cyrillic + accents consistently)
+	var base_font: FontFile = load("res://fonts/Handjet.ttf")
+	var pf := FontVariation.new()
+	pf.base_font = base_font
+	pf.variation_opentype = {"wght": 500}
 	ui_theme = Theme.new()
 	ui_theme.default_font = pf
-	ui_theme.default_font_size = 24
+	ui_theme.default_font_size = 26
 
 	# ---- Game screen ----
 	game_ui = Control.new()
@@ -291,13 +292,13 @@ func _build_ui() -> void:
 	menu_ui.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	menu_ui.theme = ui_theme
 	layer.add_child(menu_ui)
-	var title := _make_label(menu_ui, Vector2(40, 230), Vector2(640, 170), 56, C_ACCENT)
+	var title := _make_label(menu_ui, Vector2(40, 380), Vector2(640, 170), 56, C_ACCENT)
 	title.text = "PAPER\nDUNGEON"
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	play_btn = _make_button(menu_ui, "", Vector2(160, 570), Vector2(400, 120), "primary")
+	play_btn = _make_button(menu_ui, "", Vector2(160, 630), Vector2(400, 120), "primary")
 	play_btn.add_theme_font_size_override("font_size", 40)
 	play_btn.pressed.connect(func(): _sfx("button"); _show_slots())
-	settings_btn = _make_button(menu_ui, "", Vector2(210, 720), Vector2(300, 90), "secondary")
+	settings_btn = _make_button(menu_ui, "", Vector2(210, 780), Vector2(300, 90), "secondary")
 	settings_btn.add_theme_font_size_override("font_size", 30)
 	settings_btn.pressed.connect(func(): _sfx("button"); _show_settings())
 
@@ -321,7 +322,7 @@ func _build_ui() -> void:
 	slot_hpfills = []
 	slot_newlabels = []
 	for i in 3:
-		var cy := 175 + i * 215
+		var cy := 385 + i * 215
 		var card := _make_button(slots_ui, "", Vector2(40, cy), Vector2(640, 195), "secondary")
 		card.pressed.connect(_on_slot_pressed.bind(i))
 		slot_buttons.append(card)
@@ -365,7 +366,7 @@ func _build_ui() -> void:
 	var classes := ["knight", "mage", "ranger"]
 	var class_hp := [10, 6, 8]
 	for i in 3:
-		var cy := 165 + i * 215
+		var cy := 380 + i * 215
 		var card := _make_button(class_ui, "", Vector2(40, cy), Vector2(640, 195), "primary")
 		card.pressed.connect(_choose_class.bind(classes[i]))
 		class_cards.append(card)
@@ -403,13 +404,13 @@ func _build_ui() -> void:
 	for i in 4:
 		var col := i % 2
 		var row := i / 2
-		var lb := _make_button(settings_ui, lang_names[i], Vector2(90 + col * 290, 260 + row * 130), Vector2(270, 110), "secondary")
+		var lb := _make_button(settings_ui, lang_names[i], Vector2(90 + col * 290, 430 + row * 130), Vector2(270, 110), "secondary")
 		lb.add_theme_font_size_override("font_size", 28)
 		lb.pressed.connect(_set_language.bind(LANGS[i]))
-	music_btn = _make_button(settings_ui, "", Vector2(90, 550), Vector2(540, 90), "secondary")
+	music_btn = _make_button(settings_ui, "", Vector2(90, 710), Vector2(540, 90), "secondary")
 	music_btn.add_theme_font_size_override("font_size", 30)
 	music_btn.pressed.connect(_toggle_music)
-	sfx_btn = _make_button(settings_ui, "", Vector2(90, 660), Vector2(540, 90), "secondary")
+	sfx_btn = _make_button(settings_ui, "", Vector2(90, 820), Vector2(540, 90), "secondary")
 	sfx_btn.add_theme_font_size_override("font_size", 30)
 	sfx_btn.pressed.connect(_toggle_sfx)
 

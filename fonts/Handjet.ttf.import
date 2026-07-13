@@ -2,13 +2,13 @@
 
 importer="font_data_dynamic"
 type="FontFile"
-uid="uid://b1i445gjauto0"
-path="res://.godot/imported/PixelOperator.ttf-a8302fa8032f699415ff0d53bc6dec56.fontdata"
+uid="uid://dn2cbmxrkjks7"
+path="res://.godot/imported/Handjet.ttf-ec5cade0ff5bba5cae9bbfb8e4a3ba23.fontdata"
 
 [deps]
 
-source_file="res://fonts/PixelOperator.ttf"
-dest_files=["res://.godot/imported/PixelOperator.ttf-a8302fa8032f699415ff0d53bc6dec56.fontdata"]
+source_file="res://fonts/Handjet.ttf"
+dest_files=["res://.godot/imported/Handjet.ttf-ec5cade0ff5bba5cae9bbfb8e4a3ba23.fontdata"]
 
 [params]
 
