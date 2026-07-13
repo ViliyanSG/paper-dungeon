@@ -53,6 +53,10 @@ const SPRITES := {
 	"door": ["..DDDD..", ".DwwwwD.", "DwwwwwwD", "DwwwywwD", "DwwwwwwD", "DwwwwwwD", "DwwwwwwD", "DDDDDDDD"],
 	"stairs": ["........", "QQ......", "QqQQ....", "QqQqQQ..", "QqQqQqQQ", "QqQqQqQq", "QqQqQqQq", "QQQQQQQQ"],
 	"grave": ["...KKKKKK...", "..KqqqqqqK..", ".KqqqqqqqqK.", ".KqqqKKqqqK.", ".KqKKKKKKqK.", ".KqKKKKKKqK.", ".KqqqKKqqqK.", ".KqqqKKqqqK.", ".KqqqqqqqqK.", ".KQqqqqqqQK.", "..oooooooo..", ".oooooooooo."],
+	"gem": ["...cc...", "..cccc..", ".cvvvvc.", "cvvvvvvc", ".Vvvvvv.", "..VvvV..", "...VV...", "........"],
+	"shield": [".gyyyyg.", "gyyyyyyg", "gyyggyyg", "gyyggyyg", "gyyyyyyg", ".gyyyyg.", "..gyyg..", "...gg..."],
+	"fire": ["...y....", "...yy...", "..yFy...", "..yFFy..", ".yFFRFy.", ".yFRRFy.", ".FFRRFF.", "..FFFF.."],
+	"pick": ["m......m", ".m....m.", "..mmmm..", "...MM...", "...ww...", "...ww...", "...ww...", "...ww..."],
 }
 var SPRITE_PAL := {
 	"K": Color8(43, 43, 43), "g": Color8(205, 161, 42), "y": Color8(244, 221, 132),
@@ -67,6 +71,7 @@ var SPRITE_PAL := {
 	"a": Color8(154, 164, 174), "A": Color8(95, 106, 117),
 	"v": Color8(106, 74, 160), "V": Color8(63, 40, 112),
 	"J": Color8(63, 125, 79), "j": Color8(39, 77, 51),
+	"F": Color8(232, 134, 58), "R": Color8(176, 48, 31), "c": Color8(94, 200, 224),
 }
 
 # ---- Localization (en, bg, fr, de) ----
@@ -173,6 +178,9 @@ var settings_ui: Control
 var hp_label: Label
 var gold_label: Label
 var level_label: Label
+var floor_label: Label
+var hero_level := 1
+var ability_icon_tex: Dictionary = {}
 var roll_button: Button
 var roll_result_label: Label
 var reset_button: Button
@@ -273,11 +281,25 @@ func _build_ui() -> void:
 	game_ui.theme = ui_theme
 	layer.add_child(game_ui)
 
-	hp_label = _make_label(game_ui, Vector2(20, 26), Vector2(260, 50), 32, C_RED)
-	level_label = _make_label(game_ui, Vector2(280, 26), Vector2(160, 50), 30, C_TEXT)
-	level_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	gold_label = _make_label(game_ui, Vector2(440, 26), Vector2(260, 50), 32, C_GOLD)
-	gold_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	# top HUD — icons in a row, Floor on the right
+	_make_icon(game_ui, Vector2(16, 30), "heart", 4)
+	hp_label = _make_label(game_ui, Vector2(54, 24), Vector2(140, 46), 28, C_RED)
+	hp_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	_make_icon(game_ui, Vector2(200, 30), "coin", 4)
+	gold_label = _make_label(game_ui, Vector2(238, 24), Vector2(110, 46), 28, C_GOLD)
+	gold_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	_make_icon(game_ui, Vector2(356, 30), "gem", 4)
+	level_label = _make_label(game_ui, Vector2(394, 24), Vector2(90, 46), 28, C_CREAM)
+	level_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	floor_label = _make_label(game_ui, Vector2(490, 24), Vector2(214, 46), 28, C_CREAM)
+	floor_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	floor_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+
+	ability_icon_tex = {
+		"knight": _sprite_texture("shield", 3),
+		"mage": _sprite_texture("fire", 3),
+		"ranger": _sprite_texture("pick", 3),
+	}
 
 	roll_button = _make_button(game_ui, "Хвърли зар", Vector2(20, 870), Vector2(430, 120))
 	roll_button.pressed.connect(_on_roll)
@@ -295,7 +317,17 @@ func _build_ui() -> void:
 	ability_button.pressed.connect(_on_ability)
 	ability_button.visible = false
 
-	log_label = _make_label(game_ui, Vector2(20, 1100), Vector2(680, 170), 22, C_TEXT)
+	var lpanel := Panel.new()
+	lpanel.position = Vector2(16, 1100)
+	lpanel.size = Vector2(688, 165)
+	var lsb := StyleBoxFlat.new()
+	lsb.bg_color = Color8(42, 36, 32)
+	lsb.set_border_width_all(2)
+	lsb.border_color = Color8(106, 90, 68)
+	lsb.set_corner_radius_all(6)
+	lpanel.add_theme_stylebox_override("panel", lsb)
+	game_ui.add_child(lpanel)
+	log_label = _make_label(lpanel, Vector2(16, 12), Vector2(656, 140), 24, C_CREAM)
 	log_label.vertical_alignment = VERTICAL_ALIGNMENT_TOP
 	log_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 
@@ -545,6 +577,16 @@ func _make_rect(parent: Control, pos: Vector2, sz: Vector2, color: Color) -> Col
 	r.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	parent.add_child(r)
 	return r
+
+
+func _make_icon(parent: Control, pos: Vector2, sprite_name: String, px: int) -> TextureRect:
+	var tr := TextureRect.new()
+	tr.texture = _sprite_texture(sprite_name, px)
+	tr.position = pos
+	tr.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	tr.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	parent.add_child(tr)
+	return tr
 
 
 # =====================================================================
@@ -841,6 +883,7 @@ func _on_ability() -> void:
 
 
 func _update_ability_ui() -> void:
+	ability_button.icon = ability_icon_tex.get(hero_class, null)
 	match hero_class:
 		"knight":
 			ability_button.visible = true
@@ -986,6 +1029,7 @@ func _begin_run(data) -> void:
 		var mh := _class_hp(hero_class)
 		player = {"pos": Vector2i(0, 0), "hp": mh, "max_hp": mh, "atk": 3, "gold": 0}
 		level = 1
+		hero_level = 1
 	else:
 		hero_class = data.get("class", hero_class)
 		player = {
@@ -1014,6 +1058,7 @@ func _serialize_state() -> Dictionary:
 		pth.append([c.x, c.y])
 	return {
 		"level": level,
+		"hero_level": hero_level,
 		"class": hero_class,
 		"shield": knight_shield,
 		"wallpass": wall_pass_available,
@@ -1030,6 +1075,7 @@ func _serialize_state() -> Dictionary:
 
 func _restore_state(data: Dictionary) -> void:
 	level = int(data.get("level", 1))
+	hero_level = int(data.get("hero_level", 1))
 	hero_class = data.get("class", "knight")
 	entrance_cell = _to_vec(data.get("entrance", [0, 0]))
 	exit_cell = _to_vec(data.get("exit", [COLS - 1, ROWS - 1]))
@@ -1541,25 +1587,34 @@ func _enemy_phase() -> void:
 func _step_enemy(e: Dictionary) -> void:
 	e.prev = e.pos    # remember where it moved from (for the last-move indicator)
 	var dist := maxi(absi(e.pos.x - player.pos.x), absi(e.pos.y - player.pos.y))
-	var dir: Vector2i
+	# gather valid neighbour cells (never onto the player, walls or other enemies)
+	var candidates: Array = []
+	for d in ORTHO_DIRS + DIAG_DIRS:
+		var tgt: Vector2i = e.pos + d
+		if tgt == player.pos:
+			continue
+		if tgt.x < 0 or tgt.y < 0 or tgt.x >= COLS or tgt.y >= ROWS:
+			continue
+		if is_wall(tgt):
+			continue
+		var occ = entity_at(tgt)
+		if occ != null and occ.type == "enemy":
+			continue
+		candidates.append(tgt)
+	if candidates.is_empty():
+		return
 	if dist <= 4:
-		dir = Vector2i(signi(player.pos.x - e.pos.x), signi(player.pos.y - e.pos.y))
+		# chase: move to the valid neighbour closest to the player (circles around it)
+		var best: Vector2i = candidates[0]
+		var bestd := maxi(absi(best.x - player.pos.x), absi(best.y - player.pos.y))
+		for c in candidates:
+			var cd := maxi(absi(c.x - player.pos.x), absi(c.y - player.pos.y))
+			if cd < bestd:
+				bestd = cd
+				best = c
+		e.pos = best
 	else:
-		var dirs: Array = ORTHO_DIRS + DIAG_DIRS
-		dir = dirs[randi() % dirs.size()]
-	if dir == Vector2i.ZERO:
-		return
-	var target: Vector2i = e.pos + dir
-	if target == player.pos:
-		return    # enemies don't damage on contact; you take damage by crossing them
-	if target.x < 0 or target.y < 0 or target.x >= COLS or target.y >= ROWS:
-		return
-	if is_wall(target):
-		return
-	var occ = entity_at(target)
-	if occ != null and occ.type == "enemy":
-		return
-	e.pos = target
+		e.pos = candidates[randi() % candidates.size()]
 
 
 
@@ -1620,6 +1675,7 @@ func _restart_run() -> void:
 	var mh := _class_hp(hero_class)
 	player = {"pos": Vector2i(0, 0), "hp": mh, "max_hp": mh, "atk": 3, "gold": 0}
 	level = 1
+	hero_level = 1
 	new_level()
 
 
@@ -1633,9 +1689,10 @@ func _win() -> void:
 #  HUD / log
 # =====================================================================
 func update_hud() -> void:
-	hp_label.text = "HP %d/%d" % [player.hp, player.max_hp]
-	gold_label.text = "GP %d" % player.gold
-	level_label.text = t("hud_level") % level
+	hp_label.text = "%d/%d" % [player.hp, player.max_hp]
+	gold_label.text = "%d" % player.gold
+	level_label.text = "%d" % hero_level
+	floor_label.text = t("hud_level") % level
 
 
 func add_log(msg: String) -> void:
