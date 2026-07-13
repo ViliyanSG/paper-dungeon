@@ -997,9 +997,10 @@ func _restore_state(data: Dictionary) -> void:
 
 	entities = []
 	for e in data.get("entities", []):
+		var ep := Vector2i(int(e.get("x", 0)), int(e.get("y", 0)))
 		entities.append({
 			"type": e.get("t", "coin"), "sprite": e.get("s", "coin"),
-			"pos": Vector2i(int(e.get("x", 0)), int(e.get("y", 0))),
+			"pos": ep, "prev": ep,
 			"alive": bool(e.get("a", true)), "hp": 1, "atk": 0, "gold": 0})
 
 	path = []
@@ -1095,7 +1096,7 @@ func _place(type: String, x: int, y: int, extra: Dictionary = {}) -> void:
 		sprite = "enemy" if randi() % 2 == 0 else "skull"
 	elif type == "trap":
 		sprite = "trap" if randi() % 2 == 0 else "beartrap"
-	var e := {"type": type, "sprite": sprite, "pos": Vector2i(x, y), "alive": true, "hp": 1, "atk": 0, "gold": 0}
+	var e := {"type": type, "sprite": sprite, "pos": Vector2i(x, y), "prev": Vector2i(x, y), "alive": true, "hp": 1, "atk": 0, "gold": 0}
 	for k in extra:
 		e[k] = extra[k]
 	entities.append(e)
@@ -1521,6 +1522,7 @@ func _enemies_move() -> void:
 
 
 func _step_enemy(e: Dictionary) -> void:
+	e.prev = e.pos    # remember where it moved from (for the last-move indicator)
 	var dist := maxi(absi(e.pos.x - player.pos.x), absi(e.pos.y - player.pos.y))
 	var dir: Vector2i
 	if dist <= 4:
@@ -1705,6 +1707,10 @@ func _draw() -> void:
 		if not e.alive:
 			_draw_dead(ctr)
 		else:
+			if e.type == "enemy" and e.get("prev", e.pos) != e.pos:
+				var from := cell_center(e.prev)
+				draw_line(from, ctr, Color(0.70, 0.30, 0.30, 0.55), 2.5)
+				draw_circle(from, TILE * 0.13, Color(0.70, 0.30, 0.30, 0.40))
 			_draw_sprite(e.sprite, ctr)
 
 	# movement options (after a roll) — show the full route incl. turns
