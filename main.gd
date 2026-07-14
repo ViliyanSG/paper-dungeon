@@ -106,6 +106,8 @@ const STRINGS := {
 	"death_hint": ["back to Floor 1 · 0 GP · base HP", "обратно на Етаж 1 · 0 GP · базово HP", "retour Étage 1 · 0 GP · PV de base", "zurück zu Ebene 1 · 0 GP · Basis-HP"],
 	"ui_exit": ["Exit", "Излез", "Quitter", "Verlassen"],
 	"ui_language": ["Language", "Език", "Langue", "Sprache"],
+	"ui_swap": ["Swap sides", "Размени страните", "Inverser les côtés", "Seiten tauschen"],
+	"ui_save_exit": ["Save & Exit", "Запази и излез", "Sauver & Quitter", "Speichern & Raus"],
 	"ui_music": ["Music", "Музика", "Musique", "Musik"],
 	"ui_sound": ["Sound", "Звук", "Son", "Ton"],
 	"hud_level": ["Floor %d", "Етаж %d", "Étage %d", "Ebene %d"],
@@ -191,9 +193,12 @@ var hero_level := 1
 var ability_icon_tex: Dictionary = {}
 var roll_button: Button
 var roll_result_label: Label
-var reset_button: Button
+var settings_ingame_btn: Button
 var ability_button: Button
 var log_label: Label
+var log_panel: Panel
+var die_pos := Vector2(585, 908)
+var layout_swapped := false
 var slot_buttons: Array = []
 var del_buttons: Array = []
 # audio
@@ -215,6 +220,9 @@ var class_back: Button
 var settings_title: Label
 var lang_title: Label
 var settings_back: Button
+var swap_btn: Button
+var save_exit_btn: Button
+var settings_return := S.MENU
 # death overlay
 var death_ui: Control
 var death_title: Label
@@ -320,40 +328,40 @@ func _build_ui() -> void:
 		"ranger": _sprite_texture("pick", 3),
 	}
 
-	roll_button = _make_button(game_ui, "Хвърли зар", Vector2(20, 870), Vector2(430, 120))
+	ability_button = _make_button(game_ui, "", Vector2.ZERO, Vector2(10, 10))
+	ability_button.add_theme_font_size_override("font_size", 24)
+	ability_button.pressed.connect(_on_ability)
+
+	roll_button = _make_button(game_ui, "", Vector2.ZERO, Vector2(10, 10))
+	roll_button.add_theme_font_size_override("font_size", 32)
 	roll_button.pressed.connect(_on_roll)
 
-	roll_result_label = _make_label(game_ui, Vector2(470, 958), Vector2(230, 36), 26, C_CREAM)
+	roll_result_label = _make_label(game_ui, Vector2.ZERO, Vector2(10, 10), 24, C_CREAM)
 	roll_result_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	roll_result_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 
-	reset_button = _make_button(game_ui, "Излез", Vector2(470, 1010), Vector2(230, 70))
-	reset_button.add_theme_font_size_override("font_size", 26)
-	reset_button.pressed.connect(_exit_to_menu)
+	inv_btn = _make_button(game_ui, "", Vector2.ZERO, Vector2(10, 10), "secondary")
+	inv_btn.icon = _sprite_texture("bag", 4)
+	inv_btn.add_theme_font_size_override("font_size", 24)
+	inv_btn.pressed.connect(_show_inventory)
 
-	ability_button = _make_button(game_ui, "", Vector2(20, 1010), Vector2(430, 70))
-	ability_button.add_theme_font_size_override("font_size", 24)
-	ability_button.pressed.connect(_on_ability)
-	ability_button.visible = false
+	settings_ingame_btn = _make_button(game_ui, "", Vector2.ZERO, Vector2(10, 10), "secondary")
+	settings_ingame_btn.add_theme_font_size_override("font_size", 24)
+	settings_ingame_btn.pressed.connect(_open_ingame_settings)
 
-	var lpanel := Panel.new()
-	lpanel.position = Vector2(20, 1100)
-	lpanel.size = Vector2(430, 150)
+	log_panel = Panel.new()
 	var lsb := StyleBoxFlat.new()
 	lsb.bg_color = Color8(42, 36, 32)
 	lsb.set_border_width_all(2)
 	lsb.border_color = Color8(106, 90, 68)
 	lsb.set_corner_radius_all(6)
-	lpanel.add_theme_stylebox_override("panel", lsb)
-	game_ui.add_child(lpanel)
-	log_label = _make_label(lpanel, Vector2(14, 12), Vector2(402, 126), 22, C_CREAM)
+	log_panel.add_theme_stylebox_override("panel", lsb)
+	game_ui.add_child(log_panel)
+	log_label = _make_label(log_panel, Vector2(14, 12), Vector2(440, 150), 22, C_CREAM)
 	log_label.vertical_alignment = VERTICAL_ALIGNMENT_TOP
 	log_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 
-	inv_btn = _make_button(game_ui, "", Vector2(470, 1100), Vector2(234, 150), "secondary")
-	inv_btn.icon = _sprite_texture("bag", 4)
-	inv_btn.add_theme_font_size_override("font_size", 24)
-	inv_btn.pressed.connect(_show_inventory)
+	_layout_bottom()
 
 	# ---- Main menu screen ----
 	menu_ui = Control.new()
@@ -464,24 +472,31 @@ func _build_ui() -> void:
 	layer.add_child(settings_ui)
 	settings_back = _make_button(settings_ui, "‹", Vector2(30, 30), Vector2(72, 72), "tertiary")
 	settings_back.add_theme_font_size_override("font_size", 48)
-	settings_back.pressed.connect(func(): _sfx("button"); _show_menu())
+	settings_back.pressed.connect(_settings_back)
 	settings_title = _make_label(settings_ui, Vector2(60, 42), Vector2(600, 70), 40, C_ACCENT)
 	settings_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	lang_title = _make_label(settings_ui, Vector2(40, 190), Vector2(640, 50), 30, C_CREAM)
+	lang_title = _make_label(settings_ui, Vector2(40, 140), Vector2(640, 50), 30, C_CREAM)
 	lang_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	var lang_names := ["English", "Български", "Français", "Deutsch"]
 	for i in 4:
 		var col := i % 2
 		var row := i / 2
-		var lb := _make_button(settings_ui, lang_names[i], Vector2(90 + col * 290, 430 + row * 130), Vector2(270, 110), "secondary")
+		var lb := _make_button(settings_ui, lang_names[i], Vector2(90 + col * 290, 200 + row * 130), Vector2(270, 110), "secondary")
 		lb.add_theme_font_size_override("font_size", 28)
 		lb.pressed.connect(_set_language.bind(LANGS[i]))
-	music_btn = _make_button(settings_ui, "", Vector2(90, 710), Vector2(540, 90), "secondary")
+	music_btn = _make_button(settings_ui, "", Vector2(90, 480), Vector2(540, 84), "secondary")
 	music_btn.add_theme_font_size_override("font_size", 30)
 	music_btn.pressed.connect(_toggle_music)
-	sfx_btn = _make_button(settings_ui, "", Vector2(90, 820), Vector2(540, 90), "secondary")
+	sfx_btn = _make_button(settings_ui, "", Vector2(90, 574), Vector2(540, 84), "secondary")
 	sfx_btn.add_theme_font_size_override("font_size", 30)
 	sfx_btn.pressed.connect(_toggle_sfx)
+	swap_btn = _make_button(settings_ui, "", Vector2(90, 668), Vector2(540, 84), "secondary")
+	swap_btn.add_theme_font_size_override("font_size", 30)
+	swap_btn.pressed.connect(_toggle_swap)
+	save_exit_btn = _make_button(settings_ui, "", Vector2(150, 790), Vector2(420, 90), "primary")
+	save_exit_btn.add_theme_font_size_override("font_size", 30)
+	save_exit_btn.pressed.connect(_exit_to_menu)
+	save_exit_btn.visible = false
 
 	# ---- Death overlay ----
 	death_ui = Control.new()
@@ -678,7 +693,50 @@ func _show_class() -> void:
 
 
 func _show_settings() -> void:
+	settings_return = S.MENU
+	save_exit_btn.visible = false
 	_set_screen(S.SETTINGS)
+
+
+func _open_ingame_settings() -> void:
+	_sfx("button")
+	settings_return = S.PLAYING
+	save_exit_btn.visible = true
+	_set_screen(S.SETTINGS)
+
+
+func _settings_back() -> void:
+	_sfx("button")
+	if settings_return == S.PLAYING:
+		_show_game()
+	else:
+		_show_menu()
+
+
+func _toggle_swap() -> void:
+	_sfx("button")
+	layout_swapped = not layout_swapped
+	_save_settings()
+	_layout_bottom()
+	queue_redraw()
+
+
+func _layout_bottom() -> void:
+	var narrow_x := 504.0 if layout_swapped else 20.0
+	var wide_x := 20.0 if layout_swapped else 236.0
+	ability_button.position = Vector2(20, 858)
+	ability_button.size = Vector2(684, 68)
+	die_pos = Vector2(narrow_x + 100, 986)
+	roll_result_label.position = Vector2(narrow_x, 1038)
+	roll_result_label.size = Vector2(200, 34)
+	inv_btn.position = Vector2(narrow_x, 1082)
+	inv_btn.size = Vector2(200, 74)
+	settings_ingame_btn.position = Vector2(narrow_x, 1164)
+	settings_ingame_btn.size = Vector2(200, 72)
+	roll_button.position = Vector2(wide_x, 940)
+	roll_button.size = Vector2(468, 108)
+	log_panel.position = Vector2(wide_x, 1058)
+	log_panel.size = Vector2(468, 178)
 
 
 func _show_game() -> void:
@@ -724,7 +782,9 @@ func _apply_language() -> void:
 	settings_title.text = t("ui_settings")
 	lang_title.text = t("ui_language")
 	roll_button.text = t("ui_roll")
-	reset_button.text = t("ui_exit")
+	settings_ingame_btn.text = t("ui_settings")
+	swap_btn.text = t("ui_swap")
+	save_exit_btn.text = t("ui_save_exit")
 	death_title.text = t("ui_you_died")
 	death_restart_btn.text = t("ui_restart")
 	death_hint.text = t("death_hint")
@@ -749,6 +809,7 @@ func _load_settings() -> void:
 		locale = c.get_value("general", "locale", "en")
 		music_on = c.get_value("general", "music", true)
 		sfx_on = c.get_value("general", "sfx", true)
+		layout_swapped = c.get_value("general", "swapped", false)
 
 
 func _save_settings() -> void:
@@ -756,6 +817,7 @@ func _save_settings() -> void:
 	c.set_value("general", "locale", locale)
 	c.set_value("general", "music", music_on)
 	c.set_value("general", "sfx", sfx_on)
+	c.set_value("general", "swapped", layout_swapped)
 	c.save("user://settings.cfg")
 
 
@@ -1457,13 +1519,13 @@ func _on_roll() -> void:
 	_sfx("roll")
 	queue_redraw()
 
-	var total := 16 + randi() % 8
+	var total := 10 + randi() % 5
 	for i in total:
 		die_value = 1 + randi() % 6
-		die_angle += 0.5
+		die_angle += 0.55
 		roll_result_label.text = ""
 		queue_redraw()
-		await get_tree().create_timer(0.05 + i * 0.004).timeout
+		await get_tree().create_timer(0.03 + i * 0.0028).timeout
 
 	current_n = 1 + randi() % 6
 	diagonal = (current_n % 2) == 1
@@ -1929,7 +1991,7 @@ func _draw() -> void:
 
 	# rolling die (bottom controls area)
 	if show_die:
-		_draw_die(Vector2(585, 908), 84.0, die_value, die_angle)
+		_draw_die(die_pos, 78.0, die_value, die_angle)
 
 
 func _draw_die(center: Vector2, s: float, value: int, angle: float) -> void:
