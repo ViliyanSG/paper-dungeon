@@ -57,6 +57,7 @@ const SPRITES := {
 	"shield": [".gyyyyg.", "gyyyyyyg", "gyyggyyg", "gyyggyyg", "gyyyyyyg", ".gyyyyg.", "..gyyg..", "...gg..."],
 	"fire": ["...y....", "...yy...", "..yFy...", "..yFFy..", ".yFFRFy.", ".yFRRFy.", ".FFRRFF.", "..FFFF.."],
 	"pick": ["m......m", ".m....m.", "..mmmm..", "...MM...", "...ww...", "...ww...", "...ww...", "...ww..."],
+	"bag": ["...KK...", "..wKKw..", ".wwwwww.", "wwwwwwww", "wwCCCCww", "wwwwwwww", ".wwwwww.", "..wwww.."],
 }
 var SPRITE_PAL := {
 	"K": Color8(43, 43, 43), "g": Color8(205, 161, 42), "y": Color8(244, 221, 132),
@@ -72,6 +73,7 @@ var SPRITE_PAL := {
 	"v": Color8(106, 74, 160), "V": Color8(63, 40, 112),
 	"J": Color8(63, 125, 79), "j": Color8(39, 77, 51),
 	"F": Color8(232, 134, 58), "R": Color8(176, 48, 31), "c": Color8(94, 200, 224),
+	"C": Color8(192, 138, 74),
 }
 
 # ---- Localization (en, bg, fr, de) ----
@@ -92,6 +94,12 @@ const STRINGS := {
 	"cls_ranger_desc": ["+1 step · break wall 1/floor", "+1 стъпка · чупи стена 1/етаж", "+1 pas · casse mur 1/étage", "+1 Schritt · Wand 1/Ebene"],
 	"ui_roll": ["Roll die", "Хвърли зар", "Lancer le dé", "Würfeln"],
 	"ui_enemies": ["Enemies move", "Враговете мърдат", "Ennemis bougent", "Gegner ziehen"],
+	"ui_bag": ["Bag", "Раница", "Sac", "Tasche"],
+	"ui_inventory": ["Inventory", "Инвентар", "Inventaire", "Inventar"],
+	"ui_items": ["Items", "Предмети", "Objets", "Gegenstände"],
+	"ui_quest": ["Quest", "Куест", "Quête", "Quest"],
+	"inv_no_items": ["No items yet", "Още няма предмети", "Aucun objet", "Keine Gegenstände"],
+	"inv_no_quest": ["No active quest", "Няма активен куест", "Aucune quête", "Kein Auftrag"],
 	"ui_you_died": ["YOU DIED", "ЗАГИНА", "VOUS ÊTES MORT", "GESTORBEN"],
 	"ui_restart": ["Restart from Floor 1", "Отначало (Етаж 1)", "Recommencer (Étage 1)", "Neustart (Ebene 1)"],
 	"death_reached": ["Reached Floor %d · %d GP", "Стигна Етаж %d · %d GP", "Étage %d atteint · %d GP", "Ebene %d erreicht · %d GP"],
@@ -132,7 +140,7 @@ const STRINGS := {
 	"dir_ul": ["up-left", "горе-ляво", "haut-gauche", "oben-links"],
 }
 
-enum S { MENU, SLOTS, CLASS, SETTINGS, PLAYING }
+enum S { MENU, SLOTS, CLASS, SETTINGS, PLAYING, INVENTORY }
 
 # ---- Game state ----
 var state := S.MENU
@@ -213,6 +221,17 @@ var death_title: Label
 var death_summary: Label
 var death_restart_btn: Button
 var death_hint: Label
+# inventory
+var inv_btn: Button
+var inventory_ui: Control
+var inv_title: Label
+var inv_hero_sprite: TextureRect
+var inv_hero_name: Label
+var inv_hero_stats: Label
+var inv_items_title: Label
+var inv_items_label: Label
+var inv_quest_title: Label
+var inv_quest_label: Label
 # slot card pieces
 var slot_sprites: Array = []
 var slot_names: Array = []
@@ -318,8 +337,8 @@ func _build_ui() -> void:
 	ability_button.visible = false
 
 	var lpanel := Panel.new()
-	lpanel.position = Vector2(16, 1100)
-	lpanel.size = Vector2(688, 165)
+	lpanel.position = Vector2(20, 1100)
+	lpanel.size = Vector2(430, 150)
 	var lsb := StyleBoxFlat.new()
 	lsb.bg_color = Color8(42, 36, 32)
 	lsb.set_border_width_all(2)
@@ -327,9 +346,14 @@ func _build_ui() -> void:
 	lsb.set_corner_radius_all(6)
 	lpanel.add_theme_stylebox_override("panel", lsb)
 	game_ui.add_child(lpanel)
-	log_label = _make_label(lpanel, Vector2(16, 12), Vector2(656, 140), 24, C_CREAM)
+	log_label = _make_label(lpanel, Vector2(14, 12), Vector2(402, 126), 22, C_CREAM)
 	log_label.vertical_alignment = VERTICAL_ALIGNMENT_TOP
 	log_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+
+	inv_btn = _make_button(game_ui, "", Vector2(470, 1100), Vector2(234, 150), "secondary")
+	inv_btn.icon = _sprite_texture("bag", 4)
+	inv_btn.add_theme_font_size_override("font_size", 24)
+	inv_btn.pressed.connect(_show_inventory)
 
 	# ---- Main menu screen ----
 	menu_ui = Control.new()
@@ -496,6 +520,43 @@ func _build_ui() -> void:
 	death_hint = _make_label(dpanel, Vector2(0, 410), Vector2(400, 30), 18, C_MUTED)
 	death_hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 
+	# ---- Inventory screen ----
+	inventory_ui = Control.new()
+	inventory_ui.set_anchors_preset(Control.PRESET_FULL_RECT)
+	inventory_ui.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	inventory_ui.theme = ui_theme
+	layer.add_child(inventory_ui)
+	var iback := _make_button(inventory_ui, "‹", Vector2(30, 30), Vector2(72, 72), "tertiary")
+	iback.add_theme_font_size_override("font_size", 48)
+	iback.pressed.connect(func(): _sfx("button"); _show_game())
+	inv_title = _make_label(inventory_ui, Vector2(60, 42), Vector2(600, 70), 40, C_ACCENT)
+	inv_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	var hcard := Panel.new()
+	hcard.position = Vector2(40, 170)
+	hcard.size = Vector2(640, 170)
+	var hsb := StyleBoxFlat.new()
+	hsb.bg_color = Color8(42, 36, 32)
+	hsb.set_border_width_all(2)
+	hsb.border_color = Color8(106, 90, 68)
+	hsb.set_corner_radius_all(6)
+	hcard.add_theme_stylebox_override("panel", hsb)
+	inventory_ui.add_child(hcard)
+	inv_hero_sprite = TextureRect.new()
+	inv_hero_sprite.position = Vector2(24, 37)
+	inv_hero_sprite.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	inv_hero_sprite.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	hcard.add_child(inv_hero_sprite)
+	inv_hero_name = _make_label(hcard, Vector2(150, 24), Vector2(460, 44), 30, C_ACCENT)
+	inv_hero_stats = _make_label(hcard, Vector2(150, 74), Vector2(470, 90), 24, C_CREAM)
+	inv_items_title = _make_label(inventory_ui, Vector2(50, 380), Vector2(620, 44), 30, C_ACCENT)
+	inv_items_label = _make_label(inventory_ui, Vector2(50, 434), Vector2(620, 220), 24, C_CREAM)
+	inv_items_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	inv_items_label.vertical_alignment = VERTICAL_ALIGNMENT_TOP
+	inv_quest_title = _make_label(inventory_ui, Vector2(50, 680), Vector2(620, 44), 30, C_ACCENT)
+	inv_quest_label = _make_label(inventory_ui, Vector2(50, 734), Vector2(620, 160), 24, C_CREAM)
+	inv_quest_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	inv_quest_label.vertical_alignment = VERTICAL_ALIGNMENT_TOP
+
 
 func _make_label(parent: Control, pos: Vector2, sz: Vector2, font_size: int, color: Color) -> Label:
 	var l := Label.new()
@@ -598,6 +659,7 @@ func _set_screen(s: int) -> void:
 	slots_ui.visible = (s == S.SLOTS)
 	class_ui.visible = (s == S.CLASS)
 	settings_ui.visible = (s == S.SETTINGS)
+	inventory_ui.visible = (s == S.INVENTORY)
 	game_ui.visible = (s == S.PLAYING)
 	queue_redraw()
 
@@ -621,6 +683,16 @@ func _show_settings() -> void:
 
 func _show_game() -> void:
 	_set_screen(S.PLAYING)
+
+
+func _show_inventory() -> void:
+	_sfx("button")
+	inv_hero_sprite.texture = _sprite_texture(hero_class, 8)
+	inv_hero_name.text = t("cls_%s_name" % hero_class)
+	inv_hero_stats.text = ("Lv %d · " % hero_level) + (t("hud_level") % level) + ("\nHP %d/%d" % [player.hp, player.max_hp])
+	inv_items_label.text = t("inv_no_items")
+	inv_quest_label.text = t("inv_no_quest")
+	_set_screen(S.INVENTORY)
 
 
 # =====================================================================
@@ -656,6 +728,10 @@ func _apply_language() -> void:
 	death_title.text = t("ui_you_died")
 	death_restart_btn.text = t("ui_restart")
 	death_hint.text = t("death_hint")
+	inv_btn.text = t("ui_bag")
+	inv_title.text = t("ui_inventory")
+	inv_items_title.text = t("ui_items")
+	inv_quest_title.text = t("ui_quest")
 	var classes := ["knight", "mage", "ranger"]
 	for i in 3:
 		class_name_labels[i].text = t("cls_%s_name" % classes[i])
@@ -1541,7 +1617,8 @@ func _do_move(target: Vector2i) -> void:
 			msg += t("log_hp") % hd
 		add_log(msg)
 		_enemy_phase()          # enemies move immediately after your move
-		roll_button.disabled = false
+		if not game_over:
+			roll_button.disabled = false
 	_update_roll_label()
 	queue_redraw()
 
@@ -1579,6 +1656,8 @@ func _update_main_button() -> void:
 # Returns true if the player died and the floor restarted.
 func _enemy_phase() -> void:
 	for e in entities:
+		if game_over:
+			break
 		if e.alive and e.type == "enemy":
 			_step_enemy(e)
 	update_hud()
@@ -1587,15 +1666,17 @@ func _enemy_phase() -> void:
 func _step_enemy(e: Dictionary) -> void:
 	e.prev = e.pos    # remember where it moved from (for the last-move indicator)
 	var dist := maxi(absi(e.pos.x - player.pos.x), absi(e.pos.y - player.pos.y))
-	# gather valid neighbour cells (never onto the player, walls or other enemies)
+	var chase := dist <= 7
 	var candidates: Array = []
 	for d in ORTHO_DIRS + DIAG_DIRS:
 		var tgt: Vector2i = e.pos + d
-		if tgt == player.pos:
-			continue
 		if tgt.x < 0 or tgt.y < 0 or tgt.x >= COLS or tgt.y >= ROWS:
 			continue
 		if is_wall(tgt):
+			continue
+		if tgt == player.pos:
+			if chase:
+				candidates.append(tgt)   # intercept: may step onto you to attack
 			continue
 		var occ = entity_at(tgt)
 		if occ != null and occ.type == "enemy":
@@ -1603,8 +1684,8 @@ func _step_enemy(e: Dictionary) -> void:
 		candidates.append(tgt)
 	if candidates.is_empty():
 		return
-	if dist <= 4:
-		# chase: move to the valid neighbour closest to the player (circles around it)
+	if chase:
+		# move to the valid cell closest to the player (may be your own cell = attack)
 		var best: Vector2i = candidates[0]
 		var bestd := maxi(absi(best.x - player.pos.x), absi(best.y - player.pos.y))
 		for c in candidates:
@@ -1612,9 +1693,24 @@ func _step_enemy(e: Dictionary) -> void:
 			if cd < bestd:
 				bestd = cd
 				best = c
-		e.pos = best
+		if best == player.pos:
+			_enemy_attack(e)
+		else:
+			e.pos = best
 	else:
 		e.pos = candidates[randi() % candidates.size()]
+
+
+func _enemy_attack(e: Dictionary) -> void:
+	e.alive = false    # the enemy clashes onto you and dies
+	_sfx("hit")
+	if hero_class == "knight" and knight_shield:
+		knight_shield = false      # shield absorbs the hit first
+		add_log(t("log_shield"))
+		_update_ability_ui()
+	else:
+		player.hp -= 1 + randi() % 6
+		_check_death()
 
 
 
