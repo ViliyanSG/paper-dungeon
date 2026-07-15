@@ -58,6 +58,8 @@ const SPRITES := {
 	"fire": ["...y....", "...yy...", "..yFy...", "..yFFy..", ".yFFRFy.", ".yFRRFy.", ".FFRRFF.", "..FFFF.."],
 	"pick": ["m......m", ".m....m.", "..mmmm..", "...MM...", "...ww...", "...ww...", "...ww...", "...ww..."],
 	"bag": ["...KK...", "..wKKw..", ".wwwwww.", "wwwwwwww", "wwCCCCww", "wwwwwwww", ".wwwwww.", "..wwww.."],
+	"die": ["KKKKKKKK", "KnnnnnnK", "KnKnnKnK", "KnnnnnnK", "KnnnKnnK", "KnnnnnnK", "KnKnnKnK", "KKKKKKKK"],
+	"scroll": ["..nnnn..", ".nKKKKn.", "nnnnnnnn", "nKKKKKKn", "nnnnnnnn", "nKKKKKKn", ".nKKKKn.", "..nnnn.."],
 }
 var SPRITE_PAL := {
 	"K": Color8(43, 43, 43), "g": Color8(205, 161, 42), "y": Color8(244, 221, 132),
@@ -108,6 +110,29 @@ const STRINGS := {
 	"ui_language": ["Language", "Език", "Langue", "Sprache"],
 	"ui_swap": ["Swap sides", "Размени страните", "Inverser les côtés", "Seiten tauschen"],
 	"ui_save_exit": ["Save & Exit", "Запази и излез", "Sauver & Quitter", "Speichern & Raus"],
+	"ui_howto": ["How to play", "Как се играе", "Comment jouer", "Anleitung"],
+	"ui_skip": ["Skip", "Пропусни", "Passer", "Überspringen"],
+	"ui_next": ["Next", "Напред", "Suivant", "Weiter"],
+	"tut_goal_t": ["Goal", "Цел", "Objectif", "Ziel"],
+	"tut_goal_b": ["Reach the exit door to descend one floor. Survive as deep as you can!", "Стигни изхода, за да слезеш един етаж по-надолу. Оцелей възможно най-дълбоко!", "Atteignez la sortie pour descendre d'un étage. Survivez le plus profond possible !", "Erreiche den Ausgang, um eine Ebene tiefer zu gehen. Überlebe so tief wie möglich!"],
+	"tut_roll_t": ["Roll the die", "Хвърли зара", "Lancez le dé", "Würfeln"],
+	"tut_roll_b": ["Tap Roll die. The number is your steps. Odd = diagonal, Even = straight.", "Натисни Roll die. Числото е стъпките ти. Нечетно = диагонал, четно = право.", "Appuyez sur Roll die. Le nombre = vos pas. Impair = diagonale, pair = tout droit.", "Tippe Roll die. Die Zahl sind deine Schritte. Ungerade = diagonal, gerade = gerade."],
+	"tut_move_t": ["Move", "Движение", "Déplacement", "Bewegen"],
+	"tut_move_b": ["Tap a green spot to move there. Hit a wall and your path turns and continues.", "Цъкни зелена точка, за да отидеш там. Удариш ли стена, пътят завива и продължава.", "Touchez un point vert pour y aller. Un mur ? Le chemin tourne et continue.", "Tippe einen grünen Punkt an. Triffst du eine Wand, dreht der Weg ab."],
+	"tut_pick_t": ["Pickups", "Предмети", "Objets", "Gegenstände"],
+	"tut_pick_b": ["Coin and chest give gold. Heart heals. Trap steals gold. Grab the good, avoid the bad.", "Монета и сандък дават злато. Сърце лекува. Капан краде злато. Взимай доброто, пази се от лошото.", "Pièce et coffre donnent de l'or. Cœur soigne. Piège vole de l'or.", "Münze und Truhe geben Gold. Herz heilt. Falle stiehlt Gold."],
+	"tut_enemy_t": ["Enemies", "Врагове", "Ennemis", "Gegner"],
+	"tut_enemy_b": ["Cross an enemy to kill it (you take a little damage). Enemies chase you and clash onto you — watch the red trail.", "Мини през враг, за да го убиеш (взимаш малко щета). Враговете те преследват и се хвърлят отгоре ти — гледай червената следа.", "Traversez un ennemi pour le tuer (petits dégâts). Les ennemis vous poursuivent — attention à la traînée rouge.", "Laufe durch einen Gegner, um ihn zu töten (etwas Schaden). Gegner jagen dich — achte auf die rote Spur."],
+	"tut_level_t": ["Level up", "Ниво", "Niveau", "Levelaufstieg"],
+	"tut_level_b": ["Every few floors you level up. Choose +2 Max HP or +1 charge of your class power.", "На всеки няколко етажа качваш ниво. Избираш +2 Max HP или +1 заряд на способността.", "Tous les quelques étages, vous montez de niveau. Choisissez +2 PV max ou +1 charge.", "Alle paar Ebenen steigst du auf. Wähle +2 Max-HP oder +1 Ladung."],
+	"tut_class_t": ["Your class", "Твоят клас", "Ta classe", "Deine Klasse"],
+	"tut_class_b": ["Use your class power with its button (shield / firebolt / break wall). At 0 HP you restart from Floor 1.", "Ползвай силата на класа с бутона (щит / firebolt / чупене на стена). При 0 HP почваш от Етаж 1.", "Utilisez le pouvoir de classe (bouclier / firebolt / mur). À 0 PV, retour à l'étage 1.", "Nutze deine Klassenkraft (Schild / Firebolt / Wand). Bei 0 HP zurück zu Ebene 1."],
+	"tut_merchant_t": ["Merchant", "Търговец", "Marchand", "Händler"],
+	"tut_merchant_b": ["Every few floors a merchant appears (it is not a floor).", "На всеки няколко етажа се появява търговец (не е етаж).", "Tous les quelques étages, un marchand apparaît (ce n'est pas un étage).", "Alle paar Ebenen erscheint ein Händler (keine Ebene)."],
+	"tut_buy_t": ["Buy items", "Купи предмети", "Acheter", "Kaufen"],
+	"tut_buy_b": ["Spend gold on potions, upgrades and extra ability charges.", "Харчиш злато за отвари, ъпгрейди и допълнителни заряди.", "Dépensez de l'or en potions, améliorations et charges.", "Gib Gold für Tränke, Upgrades und Ladungen aus."],
+	"tut_quest_t": ["Quests", "Мисии", "Quêtes", "Aufträge"],
+	"tut_quest_b": ["Take 1 of 2 quests. Complete it for a reward, fail it for a penalty.", "Взимаш 1 от 2 мисии. Изпълниш ли я — награда; провалиш ли я — пенълти.", "Prenez 1 quête sur 2. Réussie = récompense, ratée = pénalité.", "Nimm 1 von 2 Aufträgen. Erfüllt = Belohnung, verfehlt = Strafe."],
 	"ui_music": ["Music", "Музика", "Musique", "Musik"],
 	"ui_sound": ["Sound", "Звук", "Son", "Ton"],
 	"hud_level": ["Floor %d", "Етаж %d", "Étage %d", "Ebene %d"],
@@ -141,6 +166,21 @@ const STRINGS := {
 	"dir_dl": ["down-left", "долу-ляво", "bas-gauche", "unten-links"],
 	"dir_ul": ["up-left", "горе-ляво", "haut-gauche", "oben-links"],
 }
+
+const TUT_GENERAL := [
+	{"i": ["door"], "t": "tut_goal_t", "b": "tut_goal_b"},
+	{"i": ["die"], "t": "tut_roll_t", "b": "tut_roll_b"},
+	{"i": ["knight"], "t": "tut_move_t", "b": "tut_move_b"},
+	{"i": ["coin", "heart", "chest", "trap"], "t": "tut_pick_t", "b": "tut_pick_b"},
+	{"i": ["enemy"], "t": "tut_enemy_t", "b": "tut_enemy_b"},
+	{"i": ["gem"], "t": "tut_level_t", "b": "tut_level_b"},
+	{"i": ["shield"], "t": "tut_class_t", "b": "tut_class_b"},
+]
+const TUT_SHOP := [
+	{"i": ["bag"], "t": "tut_merchant_t", "b": "tut_merchant_b"},
+	{"i": ["coin"], "t": "tut_buy_t", "b": "tut_buy_b"},
+	{"i": ["scroll"], "t": "tut_quest_t", "b": "tut_quest_b"},
+]
 
 enum S { MENU, SLOTS, CLASS, SETTINGS, PLAYING, INVENTORY }
 
@@ -222,7 +262,19 @@ var lang_title: Label
 var settings_back: Button
 var swap_btn: Button
 var save_exit_btn: Button
+var howto_btn: Button
 var settings_return := S.MENU
+var tutorial_seen := false
+# tutorial overlay
+var tutorial_ui: Control
+var tut_dots_holder: Control
+var tut_icon_holder: Control
+var tut_title: Label
+var tut_body: Label
+var tut_skip_btn: Button
+var tut_next_btn: Button
+var tut_steps: Array = []
+var tut_index := 0
 # death overlay
 var death_ui: Control
 var death_title: Label
@@ -475,25 +527,28 @@ func _build_ui() -> void:
 	settings_back.pressed.connect(_settings_back)
 	settings_title = _make_label(settings_ui, Vector2(60, 42), Vector2(600, 70), 40, C_ACCENT)
 	settings_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	lang_title = _make_label(settings_ui, Vector2(40, 140), Vector2(640, 50), 30, C_CREAM)
+	lang_title = _make_label(settings_ui, Vector2(40, 118), Vector2(640, 46), 30, C_CREAM)
 	lang_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	var lang_names := ["English", "Български", "Français", "Deutsch"]
 	for i in 4:
 		var col := i % 2
 		var row := i / 2
-		var lb := _make_button(settings_ui, lang_names[i], Vector2(90 + col * 290, 200 + row * 130), Vector2(270, 110), "secondary")
+		var lb := _make_button(settings_ui, lang_names[i], Vector2(90 + col * 290, 172 + row * 116), Vector2(270, 100), "secondary")
 		lb.add_theme_font_size_override("font_size", 28)
 		lb.pressed.connect(_set_language.bind(LANGS[i]))
-	music_btn = _make_button(settings_ui, "", Vector2(90, 480), Vector2(540, 84), "secondary")
+	music_btn = _make_button(settings_ui, "", Vector2(90, 408), Vector2(540, 76), "secondary")
 	music_btn.add_theme_font_size_override("font_size", 30)
 	music_btn.pressed.connect(_toggle_music)
-	sfx_btn = _make_button(settings_ui, "", Vector2(90, 574), Vector2(540, 84), "secondary")
+	sfx_btn = _make_button(settings_ui, "", Vector2(90, 492), Vector2(540, 76), "secondary")
 	sfx_btn.add_theme_font_size_override("font_size", 30)
 	sfx_btn.pressed.connect(_toggle_sfx)
-	swap_btn = _make_button(settings_ui, "", Vector2(90, 668), Vector2(540, 84), "secondary")
+	swap_btn = _make_button(settings_ui, "", Vector2(90, 576), Vector2(540, 76), "secondary")
 	swap_btn.add_theme_font_size_override("font_size", 30)
 	swap_btn.pressed.connect(_toggle_swap)
-	save_exit_btn = _make_button(settings_ui, "", Vector2(150, 790), Vector2(420, 90), "primary")
+	howto_btn = _make_button(settings_ui, "", Vector2(90, 660), Vector2(540, 76), "secondary")
+	howto_btn.add_theme_font_size_override("font_size", 30)
+	howto_btn.pressed.connect(func(): _sfx("button"); _start_tutorial(TUT_GENERAL + TUT_SHOP))
+	save_exit_btn = _make_button(settings_ui, "", Vector2(150, 766), Vector2(420, 86), "primary")
 	save_exit_btn.add_theme_font_size_override("font_size", 30)
 	save_exit_btn.pressed.connect(_exit_to_menu)
 	save_exit_btn.visible = false
@@ -571,6 +626,50 @@ func _build_ui() -> void:
 	inv_quest_label = _make_label(inventory_ui, Vector2(50, 734), Vector2(620, 160), 24, C_CREAM)
 	inv_quest_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	inv_quest_label.vertical_alignment = VERTICAL_ALIGNMENT_TOP
+
+	# ---- Tutorial overlay ----
+	tutorial_ui = Control.new()
+	tutorial_ui.set_anchors_preset(Control.PRESET_FULL_RECT)
+	tutorial_ui.mouse_filter = Control.MOUSE_FILTER_STOP
+	tutorial_ui.theme = ui_theme
+	tutorial_ui.visible = false
+	layer.add_child(tutorial_ui)
+	var tdim := ColorRect.new()
+	tdim.set_anchors_preset(Control.PRESET_FULL_RECT)
+	tdim.color = Color(0.02, 0.02, 0.02, 0.8)
+	tutorial_ui.add_child(tdim)
+	var tpanel := Panel.new()
+	tpanel.position = Vector2(140, 340)
+	tpanel.size = Vector2(440, 600)
+	var tsb := StyleBoxFlat.new()
+	tsb.bg_color = Color8(33, 29, 24)
+	tsb.set_border_width_all(3)
+	tsb.border_color = Color8(201, 162, 39)
+	tsb.set_corner_radius_all(10)
+	tpanel.add_theme_stylebox_override("panel", tsb)
+	tutorial_ui.add_child(tpanel)
+	tut_dots_holder = Control.new()
+	tut_dots_holder.position = Vector2(0, 26)
+	tut_dots_holder.size = Vector2(440, 18)
+	tut_dots_holder.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	tpanel.add_child(tut_dots_holder)
+	tut_icon_holder = Control.new()
+	tut_icon_holder.position = Vector2(0, 66)
+	tut_icon_holder.size = Vector2(440, 100)
+	tut_icon_holder.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	tpanel.add_child(tut_icon_holder)
+	tut_title = _make_label(tpanel, Vector2(0, 192), Vector2(440, 50), 34, C_ACCENT)
+	tut_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	tut_body = _make_label(tpanel, Vector2(30, 254), Vector2(380, 190), 24, C_CREAM)
+	tut_body.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	tut_body.vertical_alignment = VERTICAL_ALIGNMENT_TOP
+	tut_body.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	tut_skip_btn = _make_button(tpanel, "", Vector2(30, 476), Vector2(130, 88), "tertiary")
+	tut_skip_btn.add_theme_font_size_override("font_size", 26)
+	tut_skip_btn.pressed.connect(_tut_skip)
+	tut_next_btn = _make_button(tpanel, "", Vector2(180, 476), Vector2(230, 88), "primary")
+	tut_next_btn.add_theme_font_size_override("font_size", 28)
+	tut_next_btn.pressed.connect(_tut_next)
 
 
 func _make_label(parent: Control, pos: Vector2, sz: Vector2, font_size: int, color: Color) -> Label:
@@ -743,6 +842,73 @@ func _show_game() -> void:
 	_set_screen(S.PLAYING)
 
 
+func _start_tutorial(steps: Array) -> void:
+	tut_steps = steps
+	tut_index = 0
+	for c in tut_dots_holder.get_children():
+		c.queue_free()
+	var n := steps.size()
+	var total := n * 14 + (n - 1) * 8
+	var sx := (440.0 - total) / 2.0
+	for i in n:
+		var dot := ColorRect.new()
+		dot.position = Vector2(sx + i * 22, 0)
+		dot.size = Vector2(14, 14)
+		dot.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		tut_dots_holder.add_child(dot)
+	_render_tut_step()
+	tutorial_ui.visible = true
+	queue_redraw()
+
+
+func _render_tut_step() -> void:
+	var step: Dictionary = tut_steps[tut_index]
+	var dots := tut_dots_holder.get_children()
+	for i in dots.size():
+		dots[i].color = C_GOLD if i == tut_index else Color8(74, 64, 58)
+	for c in tut_icon_holder.get_children():
+		c.queue_free()
+	var icons: Array = step["i"]
+	var total_w := 0.0
+	for iname in icons:
+		var cols: int = SPRITES[iname][0].length()
+		total_w += int(64.0 / cols) * cols + 12
+	total_w -= 12
+	var sx := (440.0 - total_w) / 2.0
+	for iname in icons:
+		var cols: int = SPRITES[iname][0].length()
+		var rows: int = SPRITES[iname].size()
+		var px := int(64.0 / cols)
+		var tr := TextureRect.new()
+		tr.texture = _sprite_texture(iname, px)
+		tr.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+		tr.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		tr.position = Vector2(sx, (100.0 - px * rows) / 2.0)
+		tut_icon_holder.add_child(tr)
+		sx += px * cols + 12
+	tut_title.text = t(step["t"])
+	tut_body.text = t(step["b"])
+	tut_skip_btn.text = t("ui_skip")
+	tut_skip_btn.visible = tut_index < tut_steps.size() - 1
+	tut_next_btn.text = t("ui_next") if tut_index < tut_steps.size() - 1 else t("ui_play")
+
+
+func _tut_next() -> void:
+	_sfx("button")
+	tut_index += 1
+	if tut_index >= tut_steps.size():
+		tutorial_ui.visible = false
+		queue_redraw()
+	else:
+		_render_tut_step()
+
+
+func _tut_skip() -> void:
+	_sfx("button")
+	tutorial_ui.visible = false
+	queue_redraw()
+
+
 func _show_inventory() -> void:
 	_sfx("button")
 	inv_hero_sprite.texture = _sprite_texture(hero_class, 8)
@@ -784,6 +950,7 @@ func _apply_language() -> void:
 	roll_button.text = t("ui_roll")
 	settings_ingame_btn.text = t("ui_settings")
 	swap_btn.text = t("ui_swap")
+	howto_btn.text = t("ui_howto")
 	save_exit_btn.text = t("ui_save_exit")
 	death_title.text = t("ui_you_died")
 	death_restart_btn.text = t("ui_restart")
@@ -810,6 +977,7 @@ func _load_settings() -> void:
 		music_on = c.get_value("general", "music", true)
 		sfx_on = c.get_value("general", "sfx", true)
 		layout_swapped = c.get_value("general", "swapped", false)
+		tutorial_seen = c.get_value("general", "tutorial_seen", false)
 
 
 func _save_settings() -> void:
@@ -818,6 +986,7 @@ func _save_settings() -> void:
 	c.set_value("general", "music", music_on)
 	c.set_value("general", "sfx", sfx_on)
 	c.set_value("general", "swapped", layout_swapped)
+	c.set_value("general", "tutorial_seen", tutorial_seen)
 	c.save("user://settings.cfg")
 
 
@@ -990,6 +1159,10 @@ func _choose_class(c: String) -> void:
 	hero_class = c
 	_begin_run(null)
 	_show_game()
+	if not tutorial_seen:
+		tutorial_seen = true
+		_save_settings()
+		_start_tutorial(TUT_GENERAL)
 
 
 func _class_hp(c: String) -> int:
