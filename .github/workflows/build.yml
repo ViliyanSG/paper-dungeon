@@ -37,7 +37,7 @@ jobs:
         with:
           generateReleaseNotes: true
           allowUpdates: true
-          tag: v0.1.${{ github.run_number }}
+          tag: v1.0.${{ github.run_number }}
           artifacts: ${{ steps.export.outputs.archive_directory }}/*
           token: ${{ secrets.GITHUB_TOKEN }}
 
@@ -100,6 +100,48 @@ jobs:
         uses: ncipollo/release-action@v1
         with:
           allowUpdates: true
-          tag: v0.1.${{ github.run_number }}
+          tag: v1.0.${{ github.run_number }}
           artifacts: build/android/PaperDungeon.apk
           token: ${{ secrets.GITHUB_TOKEN }}
+
+  itch:
+    name: Publish to itch.io
+    needs: [export, android]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download release assets
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release download "v1.0.${{ github.run_number }}" \
+            --repo "${{ github.repository }}" -D dist
+          ls -la dist
+
+      - name: Install butler
+        run: |
+          curl -sL -o butler.zip https://broth.itch.ovh/butler/linux-amd64/LATEST/archive/default
+          unzip -q butler.zip
+          chmod +x butler
+          ./butler -V
+
+      - name: Push builds to itch.io
+        env:
+          BUTLER_API_KEY: ${{ secrets.BUTLER_API_KEY }}
+          ITCH_TARGET: ${{ vars.ITCH_TARGET }}
+        run: |
+          if [ -z "$BUTLER_API_KEY" ] || [ -z "$ITCH_TARGET" ]; then
+            echo "itch.io not configured yet (need BUTLER_API_KEY secret + ITCH_TARGET variable) — skipping."
+            exit 0
+          fi
+          VER="1.0.${{ github.run_number }}"
+          for f in dist/*; do
+            base=$(basename "$f")
+            case "$base" in
+              *[Ww]indows*) ch=windows ;;
+              *[Ll]inux*)   ch=linux ;;
+              *.apk)        ch=android ;;
+              *) echo "skip $base"; continue ;;
+            esac
+            echo "Pushing $base -> $ITCH_TARGET:$ch"
+            ./butler push "$f" "$ITCH_TARGET:$ch" --userversion "$VER"
+          done
