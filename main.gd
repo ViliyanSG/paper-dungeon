@@ -1466,10 +1466,8 @@ func _choose_class(c: String) -> void:
 	hero_class = c
 	_begin_run(null)
 	_show_game()
-	if not tutorial_seen:
-		tutorial_seen = true
-		_save_settings()
-		_start_tutorial(TUT_GENERAL)
+	tutorial_seen = true
+	_start_tutorial(TUT_GENERAL)   # show the intro on every new hero (Skip is there)
 
 
 func _class_hp(c: String) -> int:
@@ -1573,7 +1571,7 @@ func _try_drill(cell: Vector2i) -> void:
 
 func _exit_to_menu() -> void:
 	_sfx("button")
-	if current_slot >= 0 and state == S.PLAYING:
+	if current_slot >= 0 and not player.is_empty() and not game_over:
 		_save_slot(current_slot, _serialize_state())
 	_show_menu()
 
