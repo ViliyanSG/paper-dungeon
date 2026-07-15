@@ -102,6 +102,31 @@ const STRINGS := {
 	"ui_quest": ["Quest", "Куест", "Quête", "Quest"],
 	"inv_no_items": ["No items yet", "Още няма предмети", "Aucun objet", "Keine Gegenstände"],
 	"inv_no_quest": ["No active quest", "Няма активен куест", "Aucune quête", "Kein Auftrag"],
+	"ui_continue": ["Continue", "Продължи", "Continuer", "Weiter"],
+	"shop_hdr_buy": ["Shop", "Магазин", "Boutique", "Laden"],
+	"shop_hdr_quest": ["Quest — choose 1", "Мисия — избери 1", "Quête — choisir 1", "Auftrag — wähle 1"],
+	"shop_owned": ["owned", "купено", "acheté", "gekauft"],
+	"shop_potion_t": ["Health potion", "Отвара за живот", "Potion de vie", "Heiltrank"],
+	"shop_potion_b": ["Restore 5 HP", "Възстанови 5 HP", "Rend 5 PV", "Stellt 5 HP her"],
+	"shop_elixir_t": ["Elixir", "Еликсир", "Élixir", "Elixier"],
+	"shop_elixir_b": ["Full heal", "Пълно лечение", "Soin complet", "Volle Heilung"],
+	"shop_maxhp_t": ["Heart crystal", "Кристал сърце", "Cristal de cœur", "Herzkristall"],
+	"shop_maxhp_b": ["+2 Max HP (permanent)", "+2 Max HP (постоянно)", "+2 PV max (permanent)", "+2 Max-HP (dauerhaft)"],
+	"shop_tome_t": ["Tome of insight", "Том на прозрението", "Tome du savoir", "Buch der Einsicht"],
+	"shop_tome_b": ["+3 XP toward level", "+3 XP към ниво", "+3 XP vers le niveau", "+3 XP zum Level"],
+	"quest_survive": ["Reach Floor %d alive", "Стигни Етаж %d жив", "Atteindre l'étage %d vivant", "Erreiche Ebene %d lebend"],
+	"quest_gold": ["Collect %d gold by Floor %d", "Събери %d злато до Етаж %d", "Récolte %d or avant l'étage %d", "Sammle %d Gold bis Ebene %d"],
+	"quest_rew_g": ["Reward: %d gold", "Награда: %d злато", "Récompense : %d or", "Belohnung: %d Gold"],
+	"quest_rew_x": ["Reward: %d XP", "Награда: %d XP", "Récompense : %d XP", "Belohnung: %d XP"],
+	"quest_rew_gx": ["Reward: %d gold + %d XP", "Награда: %d злато + %d XP", "Récompense : %d or + %d XP", "Belohnung: %d Gold + %d XP"],
+	"inv_quest_active": ["Active: %s", "Активна: %s", "Active : %s", "Aktiv: %s"],
+	"inv_xp": ["XP %d/%d", "XP %d/%d", "XP %d/%d", "XP %d/%d"],
+	"log_shop": ["A merchant! Spend your gold, take a quest.", "Търговец! Похарчи злато, вземи мисия.", "Un marchand ! Dépensez, prenez une quête.", "Ein Händler! Gib Gold aus, nimm einen Auftrag."],
+	"log_levelup": ["Level up! Now Lv %d, +2 Max HP.", "Ниво нагоре! Вече Lv %d, +2 Max HP.", "Niveau %d ! +2 PV max.", "Levelaufstieg! Jetzt Lv %d, +2 Max-HP."],
+	"log_bought": ["Bought %s.", "Купи %s.", "Acheté %s.", "%s gekauft."],
+	"log_quest_take": ["Quest taken: %s", "Мисия: %s", "Quête prise : %s", "Auftrag: %s"],
+	"log_quest_done": ["Quest done! %s", "Мисия готова! %s", "Quête finie ! %s", "Auftrag erledigt! %s"],
+	"log_quest_fail": ["Quest expired.", "Мисията изтече.", "Quête expirée.", "Auftrag abgelaufen."],
 	"ui_you_died": ["YOU DIED", "ЗАГИНА", "VOUS ÊTES MORT", "GESTORBEN"],
 	"ui_restart": ["Restart from Floor 1", "Отначало (Етаж 1)", "Recommencer (Étage 1)", "Neustart (Ebene 1)"],
 	"death_reached": ["Reached Floor %d · %d GP", "Стигна Етаж %d · %d GP", "Étage %d atteint · %d GP", "Ebene %d erreicht · %d GP"],
@@ -124,13 +149,13 @@ const STRINGS := {
 	"tut_enemy_t": ["Enemies", "Врагове", "Ennemis", "Gegner"],
 	"tut_enemy_b": ["Cross an enemy to kill it (you take a little damage). Enemies chase you and clash onto you — watch the red trail.", "Мини през враг, за да го убиеш (взимаш малко щета). Враговете те преследват и се хвърлят отгоре ти — гледай червената следа.", "Traversez un ennemi pour le tuer (petits dégâts). Les ennemis vous poursuivent — attention à la traînée rouge.", "Laufe durch einen Gegner, um ihn zu töten (etwas Schaden). Gegner jagen dich — achte auf die rote Spur."],
 	"tut_level_t": ["Level up", "Ниво", "Niveau", "Levelaufstieg"],
-	"tut_level_b": ["Every few floors you level up. Choose +2 Max HP or +1 charge of your class power.", "На всеки няколко етажа качваш ниво. Избираш +2 Max HP или +1 заряд на способността.", "Tous les quelques étages, vous montez de niveau. Choisissez +2 PV max ou +1 charge.", "Alle paar Ebenen steigst du auf. Wähle +2 Max-HP oder +1 Ladung."],
+	"tut_level_b": ["Clearing floors and quests earns XP (the gem). Each level up gives +2 Max HP.", "Етажите и мисиите дават XP (гемът). Всяко ниво нагоре дава +2 Max HP.", "Étages et quêtes donnent de l'XP (la gemme). Chaque niveau : +2 PV max.", "Ebenen und Aufträge geben XP (Edelstein). Jeder Aufstieg: +2 Max-HP."],
 	"tut_class_t": ["Your class", "Твоят клас", "Ta classe", "Deine Klasse"],
 	"tut_class_b": ["Use your class power with its button (shield / firebolt / break wall). At 0 HP you restart from Floor 1.", "Ползвай силата на класа с бутона (щит / firebolt / чупене на стена). При 0 HP почваш от Етаж 1.", "Utilisez le pouvoir de classe (bouclier / firebolt / mur). À 0 PV, retour à l'étage 1.", "Nutze deine Klassenkraft (Schild / Firebolt / Wand). Bei 0 HP zurück zu Ebene 1."],
 	"tut_merchant_t": ["Merchant", "Търговец", "Marchand", "Händler"],
 	"tut_merchant_b": ["Every few floors a merchant appears (it is not a floor).", "На всеки няколко етажа се появява търговец (не е етаж).", "Tous les quelques étages, un marchand apparaît (ce n'est pas un étage).", "Alle paar Ebenen erscheint ein Händler (keine Ebene)."],
 	"tut_buy_t": ["Buy items", "Купи предмети", "Acheter", "Kaufen"],
-	"tut_buy_b": ["Spend gold on potions, upgrades and extra ability charges.", "Харчиш злато за отвари, ъпгрейди и допълнителни заряди.", "Dépensez de l'or en potions, améliorations et charges.", "Gib Gold für Tränke, Upgrades und Ladungen aus."],
+	"tut_buy_b": ["Spend gold on potions, healing and permanent upgrades.", "Харчиш злато за отвари, лечение и постоянни ъпгрейди.", "Dépensez de l'or en potions, soins et améliorations.", "Gib Gold für Tränke, Heilung und Upgrades aus."],
 	"tut_quest_t": ["Quests", "Мисии", "Quêtes", "Aufträge"],
 	"tut_quest_b": ["Take 1 of 2 quests. Complete it for a reward, fail it for a penalty.", "Взимаш 1 от 2 мисии. Изпълниш ли я — награда; провалиш ли я — пенълти.", "Prenez 1 quête sur 2. Réussie = récompense, ratée = pénalité.", "Nimm 1 von 2 Aufträgen. Erfüllt = Belohnung, verfehlt = Strafe."],
 	"ui_music": ["Music", "Музика", "Musique", "Musik"],
@@ -182,6 +207,14 @@ const TUT_SHOP := [
 	{"i": ["scroll"], "t": "tut_quest_t", "b": "tut_quest_b"},
 ]
 
+# Shop offers 3 random items from this pool. "eff" handled in _buy_item.
+const SHOP_ITEMS := [
+	{"id": "potion", "icon": "heart", "t": "shop_potion_t", "b": "shop_potion_b", "cost": 8},
+	{"id": "elixir", "icon": "heart", "t": "shop_elixir_t", "b": "shop_elixir_b", "cost": 14},
+	{"id": "maxhp", "icon": "gem", "t": "shop_maxhp_t", "b": "shop_maxhp_b", "cost": 18},
+	{"id": "tome", "icon": "scroll", "t": "shop_tome_t", "b": "shop_tome_b", "cost": 12},
+]
+
 enum S { MENU, SLOTS, CLASS, SETTINGS, PLAYING, INVENTORY }
 
 # ---- Game state ----
@@ -189,6 +222,14 @@ var state := S.MENU
 var locale := "en"
 var current_slot := -1
 var level := 1
+var hero_xp := 0
+var next_shop_floor := 0          # floor at which the merchant next appears
+var active_quest := {}            # {} = none; see _open_shop for shape
+var shop_offer: Array = []        # 3 item ids currently offered
+var shop_bought: Dictionary = {}  # item id -> true once bought this visit
+var shop_quests: Array = []       # 2 quest dicts offered this visit
+var shop_quest_pick := -1         # index of quest picked this visit (visit-local)
+var shop_tut_seen := false
 var pending_advance := false
 var die_value := 1
 var die_angle := 0.0
@@ -275,6 +316,14 @@ var tut_skip_btn: Button
 var tut_next_btn: Button
 var tut_steps: Array = []
 var tut_index := 0
+# shop overlay
+var shop_ui: Control
+var shop_gold_label: Label
+var shop_item_rows: Array = []      # [{root, name, desc, price}] x3
+var shop_quest_cards: Array = []    # [{root, title, body}] x2
+var shop_continue_btn: Button
+var shop_buy_hdr: Label
+var shop_quest_hdr: Label
 # death overlay
 var death_ui: Control
 var death_title: Label
@@ -671,6 +720,82 @@ func _build_ui() -> void:
 	tut_next_btn.add_theme_font_size_override("font_size", 28)
 	tut_next_btn.pressed.connect(_tut_next)
 
+	_build_shop_overlay(layer)
+
+
+func _build_shop_overlay(layer: CanvasLayer) -> void:
+	shop_ui = Control.new()
+	shop_ui.set_anchors_preset(Control.PRESET_FULL_RECT)
+	shop_ui.mouse_filter = Control.MOUSE_FILTER_STOP
+	shop_ui.theme = ui_theme
+	shop_ui.visible = false
+	layer.add_child(shop_ui)
+	var sdim := ColorRect.new()
+	sdim.set_anchors_preset(Control.PRESET_FULL_RECT)
+	sdim.color = Color(0.02, 0.02, 0.02, 0.85)
+	shop_ui.add_child(sdim)
+	var spanel := Panel.new()
+	spanel.position = Vector2(40, 110)
+	spanel.size = Vector2(640, 1060)
+	var ssb := StyleBoxFlat.new()
+	ssb.bg_color = Color8(33, 29, 24)
+	ssb.set_border_width_all(3)
+	ssb.border_color = Color8(201, 162, 39)
+	ssb.set_corner_radius_all(10)
+	spanel.add_theme_stylebox_override("panel", ssb)
+	shop_ui.add_child(spanel)
+
+	_make_icon(spanel, Vector2(32, 30), "bag", 6)
+	var stitle := _make_label(spanel, Vector2(96, 34), Vector2(360, 50), 40, C_ACCENT)
+	stitle.text = t("tut_merchant_t")
+	shop_gold_label = _make_label(spanel, Vector2(400, 42), Vector2(210, 40), 30, C_GOLD)
+	shop_gold_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+
+	shop_buy_hdr = _make_label(spanel, Vector2(32, 108), Vector2(576, 34), 24, C_MUTED)
+
+	shop_item_rows = []
+	for i in 3:
+		var ry := 150 + i * 118
+		var row := Panel.new()
+		row.position = Vector2(24, ry)
+		row.size = Vector2(592, 106)
+		var rsb := StyleBoxFlat.new()
+		rsb.bg_color = Color8(42, 36, 32)
+		rsb.set_border_width_all(2)
+		rsb.border_color = Color8(74, 64, 56)
+		rsb.set_corner_radius_all(8)
+		row.add_theme_stylebox_override("panel", rsb)
+		spanel.add_child(row)
+		var icon := _make_icon(row, Vector2(20, 21), "heart", 8)
+		var nm := _make_label(row, Vector2(104, 14), Vector2(300, 40), 28, C_CREAM)
+		var ds := _make_label(row, Vector2(104, 56), Vector2(300, 34), 22, C_MUTED)
+		var price := _make_button(row, "", Vector2(430, 20), Vector2(146, 66), "primary")
+		price.add_theme_font_size_override("font_size", 26)
+		price.pressed.connect(_buy_item.bind(i))
+		shop_item_rows.append({"icon": icon, "name": nm, "desc": ds, "price": price})
+
+	shop_quest_hdr = _make_label(spanel, Vector2(32, 520), Vector2(576, 34), 24, C_MUTED)
+
+	shop_quest_cards = []
+	for i in 2:
+		var card := Button.new()
+		card.position = Vector2(24 + i * 300, 562)
+		card.size = Vector2(292, 268)
+		_style_button(card, "secondary")
+		card.pressed.connect(_pick_quest.bind(i))
+		spanel.add_child(card)
+		var qt := _make_label(card, Vector2(16, 14), Vector2(260, 40), 26, C_ACCENT)
+		qt.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		var qb := _make_label(card, Vector2(16, 60), Vector2(260, 196), 22, C_CREAM)
+		qb.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		qb.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		qb.vertical_alignment = VERTICAL_ALIGNMENT_TOP
+		shop_quest_cards.append({"root": card, "title": qt, "body": qb})
+
+	shop_continue_btn = _make_button(spanel, "", Vector2(110, 878), Vector2(420, 96), "primary")
+	shop_continue_btn.add_theme_font_size_override("font_size", 32)
+	shop_continue_btn.pressed.connect(_close_shop)
+
 
 func _make_label(parent: Control, pos: Vector2, sz: Vector2, font_size: int, color: Color) -> Label:
 	var l := Label.new()
@@ -858,6 +983,7 @@ func _start_tutorial(steps: Array) -> void:
 		tut_dots_holder.add_child(dot)
 	_render_tut_step()
 	tutorial_ui.visible = true
+	tutorial_ui.get_parent().move_child(tutorial_ui, -1)
 	queue_redraw()
 
 
@@ -909,13 +1035,192 @@ func _tut_skip() -> void:
 	queue_redraw()
 
 
+# =====================================================================
+#  XP / leveling
+# =====================================================================
+func _xp_needed() -> int:
+	return 4 + hero_level * 2
+
+
+func _gain_xp(n: int) -> void:
+	if n <= 0:
+		return
+	hero_xp += n
+	while hero_xp >= _xp_needed():
+		hero_xp -= _xp_needed()
+		hero_level += 1
+		player.max_hp += 2
+		player.hp += 2
+		_sfx("win")
+		add_log(t("log_levelup") % hero_level)
+	update_hud()
+
+
+# =====================================================================
+#  Merchant / shop
+# =====================================================================
+func _item_by_id(id: String) -> Dictionary:
+	for it in SHOP_ITEMS:
+		if it["id"] == id:
+			return it
+	return {}
+
+
+func _make_quest(kind: String) -> Dictionary:
+	var span := randi_range(4, 6)
+	var reward := {"gold": 0, "xp": 0}
+	match randi() % 3:
+		0:
+			reward["gold"] = randi_range(20, 35)
+		1:
+			reward["xp"] = randi_range(3, 6)
+		2:
+			reward["gold"] = randi_range(10, 18)
+			reward["xp"] = randi_range(2, 3)
+	var q := {
+		"kind": kind,
+		"deadline": level + span,
+		"start_gold": player.gold,
+		"target": randi_range(20, 35) if kind == "gold" else 0,
+		"reward": reward,
+	}
+	return q
+
+
+func _quest_desc(q: Dictionary) -> String:
+	if q["kind"] == "survive":
+		return t("quest_survive") % int(q["deadline"])
+	return t("quest_gold") % [int(q["target"]), int(q["deadline"])]
+
+
+func _quest_reward_text(q: Dictionary) -> String:
+	var r: Dictionary = q["reward"]
+	var g: int = r["gold"]
+	var x: int = r["xp"]
+	if g > 0 and x > 0:
+		return t("quest_rew_gx") % [g, x]
+	if x > 0:
+		return t("quest_rew_x") % x
+	return t("quest_rew_g") % g
+
+
+func _open_shop() -> void:
+	var ids: Array = []
+	for it in SHOP_ITEMS:
+		ids.append(it["id"])
+	ids.shuffle()
+	shop_offer = ids.slice(0, 3)
+	shop_bought = {}
+	shop_quest_pick = -1
+	shop_quests = [_make_quest("survive"), _make_quest("gold")]
+	add_log(t("log_shop"))
+	_render_shop()
+	shop_ui.visible = true
+	shop_ui.get_parent().move_child(shop_ui, -1)
+	if not shop_tut_seen:
+		shop_tut_seen = true
+		_save_settings()
+		_start_tutorial(TUT_SHOP)
+	queue_redraw()
+
+
+func _render_shop() -> void:
+	shop_gold_label.text = "%d GP" % int(player.gold)
+	shop_buy_hdr.text = t("shop_hdr_buy")
+	shop_quest_hdr.text = t("shop_hdr_quest")
+	shop_continue_btn.text = t("ui_continue")
+	for i in 3:
+		var it := _item_by_id(shop_offer[i])
+		var row: Dictionary = shop_item_rows[i]
+		row["icon"].texture = _sprite_texture(it["icon"], 8)
+		row["name"].text = t(it["t"])
+		row["desc"].text = t(it["b"])
+		var pbtn: Button = row["price"]
+		if shop_bought.get(it["id"], false):
+			pbtn.text = t("shop_owned")
+			pbtn.disabled = true
+		else:
+			pbtn.text = "%d GP" % int(it["cost"])
+			pbtn.disabled = int(player.gold) < int(it["cost"])
+	for i in 2:
+		var q: Dictionary = shop_quests[i]
+		var card: Dictionary = shop_quest_cards[i]
+		var picked := shop_quest_pick == i
+		card["title"].text = t("ui_quest") + (" *" if picked else "")
+		card["body"].text = _quest_desc(q) + "\n\n" + _quest_reward_text(q)
+		card["root"].disabled = shop_quest_pick != -1
+		_style_button(card["root"], "primary" if picked else "secondary")
+
+
+func _buy_item(idx: int) -> void:
+	var it := _item_by_id(shop_offer[idx])
+	if shop_bought.get(it["id"], false) or int(player.gold) < int(it["cost"]):
+		return
+	_sfx("coin")
+	player.gold = int(player.gold) - int(it["cost"])
+	shop_bought[it["id"]] = true
+	match it["id"]:
+		"potion":
+			player.hp = mini(int(player.max_hp), int(player.hp) + 5)
+		"elixir":
+			player.hp = int(player.max_hp)
+		"maxhp":
+			player.max_hp = int(player.max_hp) + 2
+			player.hp = int(player.hp) + 2
+		"tome":
+			_gain_xp(3)
+	add_log(t("log_bought") % t(it["t"]))
+	update_hud()
+	_render_shop()
+
+
+func _pick_quest(idx: int) -> void:
+	_sfx("button")
+	shop_quest_pick = idx
+	active_quest = shop_quests[idx].duplicate(true)
+	add_log(t("log_quest_take") % _quest_desc(active_quest))
+	_render_shop()
+
+
+func _check_quest_progress() -> void:
+	if active_quest.is_empty():
+		return
+	var q := active_quest
+	var done := false
+	if q["kind"] == "survive":
+		done = level >= int(q["deadline"])
+	else:
+		done = (int(player.gold) - int(q["start_gold"])) >= int(q["target"])
+	if done:
+		var r: Dictionary = q["reward"]
+		if int(r["gold"]) > 0:
+			player.gold = int(player.gold) + int(r["gold"])
+		if int(r["xp"]) > 0:
+			_gain_xp(int(r["xp"]))
+		active_quest = {}
+		add_log(t("log_quest_done") % _quest_reward_text(q))
+		update_hud()
+	elif level >= int(q["deadline"]):
+		active_quest = {}
+		add_log(t("log_quest_fail"))
+
+
+func _close_shop() -> void:
+	_sfx("button")
+	shop_ui.visible = false
+	queue_redraw()
+
+
 func _show_inventory() -> void:
 	_sfx("button")
 	inv_hero_sprite.texture = _sprite_texture(hero_class, 8)
 	inv_hero_name.text = t("cls_%s_name" % hero_class)
-	inv_hero_stats.text = ("Lv %d · " % hero_level) + (t("hud_level") % level) + ("\nHP %d/%d" % [player.hp, player.max_hp])
+	inv_hero_stats.text = ("Lv %d · " % hero_level) + (t("hud_level") % level) + ("\nHP %d/%d · " % [player.hp, player.max_hp]) + (t("inv_xp") % [hero_xp, _xp_needed()])
 	inv_items_label.text = t("inv_no_items")
-	inv_quest_label.text = t("inv_no_quest")
+	if active_quest.is_empty():
+		inv_quest_label.text = t("inv_no_quest")
+	else:
+		inv_quest_label.text = _quest_desc(active_quest) + "\n" + _quest_reward_text(active_quest)
 	_set_screen(S.INVENTORY)
 
 
@@ -978,6 +1283,7 @@ func _load_settings() -> void:
 		sfx_on = c.get_value("general", "sfx", true)
 		layout_swapped = c.get_value("general", "swapped", false)
 		tutorial_seen = c.get_value("general", "tutorial_seen", false)
+		shop_tut_seen = c.get_value("general", "shop_tut_seen", false)
 
 
 func _save_settings() -> void:
@@ -987,6 +1293,7 @@ func _save_settings() -> void:
 	c.set_value("general", "sfx", sfx_on)
 	c.set_value("general", "swapped", layout_swapped)
 	c.set_value("general", "tutorial_seen", tutorial_seen)
+	c.set_value("general", "shop_tut_seen", shop_tut_seen)
 	c.save("user://settings.cfg")
 
 
@@ -1341,6 +1648,9 @@ func _begin_run(data) -> void:
 		player = {"pos": Vector2i(0, 0), "hp": mh, "max_hp": mh, "atk": 3, "gold": 0}
 		level = 1
 		hero_level = 1
+		hero_xp = 0
+		active_quest = {}
+		next_shop_floor = randi_range(6, 8)
 	else:
 		hero_class = data.get("class", hero_class)
 		player = {
@@ -1350,6 +1660,9 @@ func _begin_run(data) -> void:
 			"atk": 3,
 			"gold": int(data.get("gold", 0))}
 		level = int(data.get("level", 1))
+		hero_xp = int(data.get("hero_xp", 0))
+		active_quest = data.get("quest", {})
+		next_shop_floor = int(data.get("next_shop", level + randi_range(2, 4)))
 	new_level()
 
 
@@ -1370,6 +1683,9 @@ func _serialize_state() -> Dictionary:
 	return {
 		"level": level,
 		"hero_level": hero_level,
+		"hero_xp": hero_xp,
+		"next_shop": next_shop_floor,
+		"quest": active_quest,
 		"class": hero_class,
 		"shield": knight_shield,
 		"wallpass": wall_pass_available,
@@ -1387,6 +1703,9 @@ func _serialize_state() -> Dictionary:
 func _restore_state(data: Dictionary) -> void:
 	level = int(data.get("level", 1))
 	hero_level = int(data.get("hero_level", 1))
+	hero_xp = int(data.get("hero_xp", 0))
+	active_quest = data.get("quest", {})
+	next_shop_floor = int(data.get("next_shop", level + randi_range(2, 4)))
 	hero_class = data.get("class", "knight")
 	entrance_cell = _to_vec(data.get("entrance", [0, 0]))
 	exit_cell = _to_vec(data.get("exit", [COLS - 1, ROWS - 1]))
@@ -1838,6 +2157,11 @@ func _do_move(target: Vector2i) -> void:
 		_sfx("win")
 		new_level()             # HP carries over to the next floor
 		add_log(t("log_win") % level)
+		_gain_xp(1)             # a little XP for clearing a floor
+		_check_quest_progress()
+		if level >= next_shop_floor:
+			next_shop_floor = level + randi_range(6, 8)
+			_open_shop()
 		return
 
 	if not game_over:
@@ -2007,6 +2331,9 @@ func _restart_run() -> void:
 	player = {"pos": Vector2i(0, 0), "hp": mh, "max_hp": mh, "atk": 3, "gold": 0}
 	level = 1
 	hero_level = 1
+	hero_xp = 0
+	active_quest = {}
+	next_shop_floor = randi_range(6, 8)
 	new_level()
 
 
