@@ -127,6 +127,12 @@ const STRINGS := {
 	"inv_xp": ["XP %d/%d", "XP %d/%d", "XP %d/%d", "XP %d/%d"],
 	"log_shop": ["A merchant! Spend your gold, take a quest.", "Търговец! Похарчи злато, вземи мисия.", "Un marchand ! Dépensez, prenez une quête.", "Ein Händler! Gib Gold aus, nimm einen Auftrag."],
 	"log_levelup": ["Level up! Now Lv %d, +2 Max HP.", "Ниво нагоре! Вече Lv %d, +2 Max HP.", "Niveau %d ! +2 PV max.", "Levelaufstieg! Jetzt Lv %d, +2 Max-HP."],
+	"lvl_title": ["Level up! Lv %d", "Ниво нагоре! Lv %d", "Niveau %d !", "Level %d!"],
+	"lvl_pick": ["Choose your reward", "Избери награда", "Choisis ta récompense", "Wähle deine Belohnung"],
+	"lvl_hp": ["+2 Max HP", "+2 Max HP", "+2 PV max", "+2 Max-HP"],
+	"lvl_charge_knight": ["+1 Shield charge", "+1 заряд щит", "+1 charge bouclier", "+1 Schild-Ladung"],
+	"lvl_charge_mage": ["+1 Firebolt charge", "+1 заряд Firebolt", "+1 charge Firebolt", "+1 Firebolt-Ladung"],
+	"lvl_charge_ranger": ["+1 Wall break charge", "+1 заряд чупене", "+1 charge de mur", "+1 Wand-Ladung"],
 	"log_bought": ["Bought %s.", "Купи %s.", "Acheté %s.", "%s gekauft."],
 	"log_quest_take": ["Quest taken: %s", "Мисия: %s", "Quête prise : %s", "Auftrag: %s"],
 	"log_quest_done": ["Quest done! %s", "Мисия готова! %s", "Quête finie ! %s", "Auftrag erledigt! %s"],
@@ -153,7 +159,7 @@ const STRINGS := {
 	"tut_enemy_t": ["Enemies", "Врагове", "Ennemis", "Gegner"],
 	"tut_enemy_b": ["Cross an enemy to kill it (you take a little damage). Enemies chase you and clash onto you — watch the red trail.", "Мини през враг, за да го убиеш (взимаш малко щета). Враговете те преследват и се хвърлят отгоре ти — гледай червената следа.", "Traversez un ennemi pour le tuer (petits dégâts). Les ennemis vous poursuivent — attention à la traînée rouge.", "Laufe durch einen Gegner, um ihn zu töten (etwas Schaden). Gegner jagen dich — achte auf die rote Spur."],
 	"tut_level_t": ["Level up", "Ниво", "Niveau", "Levelaufstieg"],
-	"tut_level_b": ["Clearing floors and quests earns XP (the gem). Each level up gives +2 Max HP.", "Етажите и мисиите дават XP (гемът). Всяко ниво нагоре дава +2 Max HP.", "Étages et quêtes donnent de l'XP (la gemme). Chaque niveau : +2 PV max.", "Ebenen und Aufträge geben XP (Edelstein). Jeder Aufstieg: +2 Max-HP."],
+	"tut_level_b": ["Clearing floors and quests earns XP (the gem). On level up, choose +2 Max HP or +1 ability charge.", "Етажите и мисиите дават XP (гемът). При ниво нагоре избираш +2 Max HP или +1 заряд на способността.", "Étages et quêtes donnent de l'XP (la gemme). Au niveau : +2 PV max ou +1 charge.", "Ebenen und Aufträge geben XP (Edelstein). Beim Aufstieg: +2 Max-HP oder +1 Ladung."],
 	"tut_class_t": ["Your class", "Твоят клас", "Ta classe", "Deine Klasse"],
 	"tut_class_b": ["Use your class power with its button (shield / firebolt / break wall). At 0 HP you restart from Floor 1.", "Ползвай силата на класа с бутона (щит / firebolt / чупене на стена). При 0 HP почваш от Етаж 1.", "Utilisez le pouvoir de classe (bouclier / firebolt / mur). À 0 PV, retour à l'étage 1.", "Nutze deine Klassenkraft (Schild / Firebolt / Wand). Bei 0 HP zurück zu Ebene 1."],
 	"tut_merchant_t": ["Merchant", "Търговец", "Marchand", "Händler"],
@@ -241,8 +247,10 @@ var show_die := false
 
 # ---- Hero class + abilities ----
 var hero_class := "knight"
-var knight_shield := false        # free enemy kill available this level
-var wall_pass_available := false  # ranger: drill a wall once per level
+var shield_charges := 0           # knight: free enemy kills available this floor
+var wall_charges := 0             # ranger: wall drills available this floor
+var bonus_charges := 0            # permanent +charges chosen at level-ups (this run)
+var pending_levelups := 0         # level-up choices waiting to be made
 var drilling := false
 var mage_casts := 0               # mage: ranged kills left this level
 var mage_turn_cast := false       # mage: may cast once after each roll
@@ -328,6 +336,12 @@ var shop_quest_cards: Array = []    # [{root, title, body}] x2
 var shop_continue_btn: Button
 var shop_buy_hdr: Label
 var shop_quest_hdr: Label
+# level-up overlay
+var levelup_ui: Control
+var levelup_title: Label
+var levelup_sub: Label
+var levelup_hp_btn: Button
+var levelup_ab_btn: Button
 # death overlay
 var death_ui: Control
 var death_title: Label
@@ -800,6 +814,42 @@ func _build_shop_overlay(layer: CanvasLayer) -> void:
 	shop_continue_btn.add_theme_font_size_override("font_size", 32)
 	shop_continue_btn.pressed.connect(_close_shop)
 
+	_build_levelup_overlay(layer)
+
+
+func _build_levelup_overlay(layer: CanvasLayer) -> void:
+	levelup_ui = Control.new()
+	levelup_ui.set_anchors_preset(Control.PRESET_FULL_RECT)
+	levelup_ui.mouse_filter = Control.MOUSE_FILTER_STOP
+	levelup_ui.theme = ui_theme
+	levelup_ui.visible = false
+	layer.add_child(levelup_ui)
+	var ldim := ColorRect.new()
+	ldim.set_anchors_preset(Control.PRESET_FULL_RECT)
+	ldim.color = Color(0.02, 0.02, 0.02, 0.85)
+	levelup_ui.add_child(ldim)
+	var lpanel := Panel.new()
+	lpanel.position = Vector2(130, 400)
+	lpanel.size = Vector2(460, 480)
+	var lsb := StyleBoxFlat.new()
+	lsb.bg_color = Color8(33, 29, 24)
+	lsb.set_border_width_all(3)
+	lsb.border_color = Color8(201, 162, 39)
+	lsb.set_corner_radius_all(10)
+	lpanel.add_theme_stylebox_override("panel", lsb)
+	levelup_ui.add_child(lpanel)
+	_make_icon(lpanel, Vector2(206, 28), "gem", 6)
+	levelup_title = _make_label(lpanel, Vector2(0, 96), Vector2(460, 50), 38, C_ACCENT)
+	levelup_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	levelup_sub = _make_label(lpanel, Vector2(0, 152), Vector2(460, 40), 24, C_MUTED)
+	levelup_sub.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	levelup_hp_btn = _make_button(lpanel, "", Vector2(70, 214), Vector2(320, 100), "primary")
+	levelup_hp_btn.add_theme_font_size_override("font_size", 30)
+	levelup_hp_btn.pressed.connect(_levelup_choose.bind("hp"))
+	levelup_ab_btn = _make_button(lpanel, "", Vector2(70, 334), Vector2(320, 100), "primary")
+	levelup_ab_btn.add_theme_font_size_override("font_size", 30)
+	levelup_ab_btn.pressed.connect(_levelup_choose.bind("charge"))
+
 
 func _make_label(parent: Control, pos: Vector2, sz: Vector2, font_size: int, color: Color) -> Label:
 	var l := Label.new()
@@ -1028,6 +1078,7 @@ func _tut_next() -> void:
 	tut_index += 1
 	if tut_index >= tut_steps.size():
 		tutorial_ui.visible = false
+		_maybe_show_levelup()
 		queue_redraw()
 	else:
 		_render_tut_step()
@@ -1036,6 +1087,7 @@ func _tut_next() -> void:
 func _tut_skip() -> void:
 	_sfx("button")
 	tutorial_ui.visible = false
+	_maybe_show_levelup()
 	queue_redraw()
 
 
@@ -1053,11 +1105,50 @@ func _gain_xp(n: int) -> void:
 	while hero_xp >= _xp_needed():
 		hero_xp -= _xp_needed()
 		hero_level += 1
-		player.max_hp += 2
-		player.hp += 2
+		pending_levelups += 1
 		_sfx("win")
-		add_log(t("log_levelup") % hero_level)
 	update_hud()
+	_maybe_show_levelup()
+
+
+func _maybe_show_levelup() -> void:
+	if pending_levelups <= 0 or state != S.PLAYING:
+		return
+	if levelup_ui.visible or shop_ui.visible or tutorial_ui.visible or death_ui.visible:
+		return   # let the other overlay finish; retried when it closes
+	_render_levelup()
+	levelup_ui.visible = true
+	levelup_ui.get_parent().move_child(levelup_ui, -1)
+	queue_redraw()
+
+
+func _render_levelup() -> void:
+	levelup_title.text = t("lvl_title") % hero_level
+	levelup_sub.text = t("lvl_pick")
+	levelup_hp_btn.text = t("lvl_hp")
+	levelup_ab_btn.text = t("lvl_charge_%s" % hero_class)
+
+
+func _levelup_choose(kind: String) -> void:
+	_sfx("button")
+	if kind == "hp":
+		player.max_hp = int(player.max_hp) + 2
+		player.hp = int(player.hp) + 2
+	else:
+		bonus_charges += 1
+		match hero_class:
+			"knight":
+				shield_charges += 1
+			"mage":
+				mage_casts += 1
+			"ranger":
+				wall_charges += 1
+	pending_levelups -= 1
+	update_hud()
+	_update_ability_ui()
+	levelup_ui.visible = false
+	_maybe_show_levelup()   # show the next queued choice, if any
+	queue_redraw()
 
 
 # =====================================================================
@@ -1235,6 +1326,7 @@ func _close_shop() -> void:
 		active_quest = shop_quests[shop_quest_pick].duplicate(true)
 		add_log(t("log_quest_take") % _quest_desc(active_quest))
 	shop_ui.visible = false
+	_maybe_show_levelup()   # any level-up gained during/before the shop
 	queue_redraw()
 
 
@@ -1522,7 +1614,7 @@ func _on_ability() -> void:
 			_update_ability_ui()
 			queue_redraw()
 		"ranger":
-			if not (wall_pass_available and _adjacent_to_wall()):
+			if not (wall_charges > 0 and _adjacent_to_wall()):
 				return
 			drilling = not drilling
 			casting = false
@@ -1536,20 +1628,23 @@ func _update_ability_ui() -> void:
 		"knight":
 			ability_button.visible = true
 			ability_button.disabled = false
-			ability_button.text = t("ab_shield_ready") if knight_shield else t("ab_shield_used")
+			if shield_charges > 0:
+				ability_button.text = t("ab_shield_ready") + ((" x%d" % shield_charges) if shield_charges > 1 else "")
+			else:
+				ability_button.text = t("ab_shield_used")
 		"mage":
 			ability_button.visible = true
 			ability_button.disabled = mage_casts <= 0 or not mage_turn_cast
 			ability_button.text = (t("ab_magic") % mage_casts) + (t("ab_target") if casting else "")
 		"ranger":
 			ability_button.visible = true
-			ability_button.disabled = not (wall_pass_available and _adjacent_to_wall())
-			if not wall_pass_available:
+			ability_button.disabled = not (wall_charges > 0 and _adjacent_to_wall())
+			if wall_charges <= 0:
 				ability_button.text = t("ab_wall_used")
 			elif drilling:
 				ability_button.text = t("ab_wall_target")
 			else:
-				ability_button.text = t("ab_wall")
+				ability_button.text = t("ab_wall") + ((" x%d" % wall_charges) if wall_charges > 1 else "")
 		_:
 			ability_button.visible = false
 
@@ -1584,14 +1679,14 @@ func _try_cast(cell: Vector2i) -> void:
 
 
 func _try_drill(cell: Vector2i) -> void:
-	if not wall_pass_available or not is_wall(cell):
+	if wall_charges <= 0 or not is_wall(cell):
 		return
 	var dx := absi(cell.x - player.pos.x)
 	var dy := absi(cell.y - player.pos.y)
 	if maxi(dx, dy) != 1:
 		return   # must be an adjacent wall
 	walls.erase(cell)          # permanent hole
-	wall_pass_available = false
+	wall_charges -= 1
 	drilling = false
 	_sfx("trap")
 	add_log(t("log_drill"))
@@ -1679,6 +1774,8 @@ func _begin_run(data) -> void:
 		level = 1
 		hero_level = 1
 		hero_xp = 0
+		bonus_charges = 0
+		pending_levelups = 0
 		active_quest = {}
 		next_shop_floor = randi_range(6, 8)
 	else:
@@ -1691,6 +1788,8 @@ func _begin_run(data) -> void:
 			"gold": int(data.get("gold", 0))}
 		level = int(data.get("level", 1))
 		hero_xp = int(data.get("hero_xp", 0))
+		bonus_charges = int(data.get("bonus_charges", 0))
+		pending_levelups = 0
 		active_quest = data.get("quest", {})
 		next_shop_floor = int(data.get("next_shop", level + randi_range(2, 4)))
 	new_level()
@@ -1717,9 +1816,10 @@ func _serialize_state() -> Dictionary:
 		"next_shop": next_shop_floor,
 		"quest": active_quest,
 		"class": hero_class,
-		"shield": knight_shield,
-		"wallpass": wall_pass_available,
+		"shield": shield_charges,
+		"wallpass": wall_charges,
 		"casts": mage_casts,
+		"bonus_charges": bonus_charges,
 		"gold": player.gold, "hp": player.hp, "max_hp": player.max_hp,
 		"entrance": [entrance_cell.x, entrance_cell.y],
 		"exit": [exit_cell.x, exit_cell.y],
@@ -1774,8 +1874,10 @@ func _restore_state(data: Dictionary) -> void:
 	pending_advance = false
 	if death_ui:
 		death_ui.visible = false
-	knight_shield = bool(data.get("shield", hero_class == "knight"))
-	wall_pass_available = bool(data.get("wallpass", hero_class == "ranger"))
+	bonus_charges = int(data.get("bonus_charges", 0))
+	pending_levelups = 0
+	shield_charges = int(data.get("shield", 1 if hero_class == "knight" else 0))
+	wall_charges = int(data.get("wallpass", 1 if hero_class == "ranger" else 0))
 	drilling = false
 	mage_casts = int(data.get("casts", 3))
 	mage_turn_cast = false
@@ -1816,10 +1918,10 @@ func new_level() -> void:
 	pending_advance = false
 	if death_ui:
 		death_ui.visible = false
-	knight_shield = (hero_class == "knight")
-	wall_pass_available = (hero_class == "ranger")
+	shield_charges = (1 + bonus_charges) if hero_class == "knight" else 0
+	wall_charges = (1 + bonus_charges) if hero_class == "ranger" else 0
 	drilling = false
-	mage_casts = 3
+	mage_casts = (3 + bonus_charges) if hero_class == "mage" else 0
 	mage_turn_cast = false
 	casting = false
 	show_die = false
@@ -2187,11 +2289,11 @@ func _do_move(target: Vector2i) -> void:
 		_sfx("win")
 		new_level()             # HP carries over to the next floor
 		add_log(t("log_win") % level)
-		_gain_xp(1)             # a little XP for clearing a floor
-		_check_quest_progress()
 		if level >= next_shop_floor:
 			next_shop_floor = level + randi_range(6, 8)
-			_open_shop()
+			_open_shop()        # merchant first; level-up prompts wait behind it
+		_gain_xp(1)             # a little XP for clearing a floor
+		_check_quest_progress()
 		return
 
 	if not game_over:
@@ -2293,8 +2395,8 @@ func _step_enemy(e: Dictionary) -> void:
 func _enemy_attack(e: Dictionary) -> void:
 	e.alive = false    # the enemy clashes onto you and dies
 	_sfx("hit")
-	if hero_class == "knight" and knight_shield:
-		knight_shield = false      # shield absorbs the hit first
+	if hero_class == "knight" and shield_charges > 0:
+		shield_charges -= 1        # shield absorbs the hit first
 		add_log(t("log_shield"))
 		_update_ability_ui()
 	else:
@@ -2315,8 +2417,8 @@ func _resolve_tile(cell: Vector2i) -> void:
 	match ent.type:
 		"enemy":
 			_sfx("hit")
-			if hero_class == "knight" and knight_shield:
-				knight_shield = false      # free kill, no damage
+			if hero_class == "knight" and shield_charges > 0:
+				shield_charges -= 1        # free kill, no damage
 				add_log(t("log_shield"))
 			else:
 				player.hp -= 1 + randi() % 6
@@ -2362,6 +2464,8 @@ func _restart_run() -> void:
 	level = 1
 	hero_level = 1
 	hero_xp = 0
+	bonus_charges = 0
+	pending_levelups = 0
 	active_quest = {}
 	next_shop_floor = randi_range(6, 8)
 	new_level()
