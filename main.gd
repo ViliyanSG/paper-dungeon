@@ -239,7 +239,8 @@ var shop_offer: Array = []        # 3 item ids currently offered
 var shop_bought: Dictionary = {}  # item id -> true once bought this visit
 var shop_quests: Array = []       # 2 quest dicts offered this visit
 var shop_quest_pick := -1         # index of quest picked this visit (visit-local)
-var shop_tut_seen := false
+var shop_tut_seen := false        # (legacy, kept for settings compat)
+var shop_tut_done_run := false    # shop intro shown this run yet?
 var pending_advance := false
 var die_value := 1
 var die_angle := 0.0
@@ -1226,9 +1227,8 @@ func _open_shop() -> void:
 	_render_shop()
 	shop_ui.visible = true
 	shop_ui.get_parent().move_child(shop_ui, -1)
-	if not shop_tut_seen:
-		shop_tut_seen = true
-		_save_settings()
+	if not shop_tut_done_run:
+		shop_tut_done_run = true      # show shop intro on the first shop each run
 		_start_tutorial(TUT_SHOP)
 	queue_redraw()
 
@@ -1776,6 +1776,7 @@ func _begin_run(data) -> void:
 		hero_xp = 0
 		bonus_charges = 0
 		pending_levelups = 0
+		shop_tut_done_run = false
 		active_quest = {}
 		next_shop_floor = randi_range(6, 8)
 	else:
@@ -2466,6 +2467,7 @@ func _restart_run() -> void:
 	hero_xp = 0
 	bonus_charges = 0
 	pending_levelups = 0
+	shop_tut_done_run = false
 	active_quest = {}
 	next_shop_floor = randi_range(6, 8)
 	new_level()
