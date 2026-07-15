@@ -115,10 +115,14 @@ const STRINGS := {
 	"shop_tome_t": ["Tome of insight", "Том на прозрението", "Tome du savoir", "Buch der Einsicht"],
 	"shop_tome_b": ["+3 XP toward level", "+3 XP към ниво", "+3 XP vers le niveau", "+3 XP zum Level"],
 	"quest_survive": ["Reach Floor %d alive", "Стигни Етаж %d жив", "Atteindre l'étage %d vivant", "Erreiche Ebene %d lebend"],
-	"quest_gold": ["Collect %d gold by Floor %d", "Събери %d злато до Етаж %d", "Récolte %d or avant l'étage %d", "Sammle %d Gold bis Ebene %d"],
+	"quest_gold": ["Collect %d gold", "Събери %d злато", "Récolte %d or", "Sammle %d Gold"],
 	"quest_rew_g": ["Reward: %d gold", "Награда: %d злато", "Récompense : %d or", "Belohnung: %d Gold"],
 	"quest_rew_x": ["Reward: %d XP", "Награда: %d XP", "Récompense : %d XP", "Belohnung: %d XP"],
 	"quest_rew_gx": ["Reward: %d gold + %d XP", "Награда: %d злато + %d XP", "Récompense : %d or + %d XP", "Belohnung: %d Gold + %d XP"],
+	"quest_pen_g": ["Penalty: -%d gold", "Пенълти: -%d злато", "Pénalité : -%d or", "Strafe: -%d Gold"],
+	"quest_pen_h": ["Penalty: -%d HP", "Пенълти: -%d HP", "Pénalité : -%d PV", "Strafe: -%d HP"],
+	"quest_deadline": ["Deadline: Floor %d", "Срок: Етаж %d", "Limite : Étage %d", "Frist: Ebene %d"],
+	"quest_penalized": ["Quest failed! %s", "Мисия провалена! %s", "Quête ratée ! %s", "Auftrag verfehlt! %s"],
 	"inv_quest_active": ["Active: %s", "Активна: %s", "Active : %s", "Aktiv: %s"],
 	"inv_xp": ["XP %d/%d", "XP %d/%d", "XP %d/%d", "XP %d/%d"],
 	"log_shop": ["A merchant! Spend your gold, take a quest.", "Търговец! Похарчи злато, вземи мисия.", "Un marchand ! Dépensez, prenez une quête.", "Ein Händler! Gib Gold aus, nimm einen Auftrag."],
@@ -1066,42 +1070,56 @@ func _item_by_id(id: String) -> Dictionary:
 	return {}
 
 
-func _make_quest(kind: String) -> Dictionary:
-	var span := randi_range(4, 6)
+func _make_quest(tier: int) -> Dictionary:
+	# tier 0 = easier/smaller stakes, 1 = harder/bigger stakes
+	var span := 4 + tier + randi() % 2               # tier0: 4-5, tier1: 5-6 floors
+	var target := randi_range(14, 20) if tier == 0 else randi_range(28, 42)
 	var reward := {"gold": 0, "xp": 0}
 	match randi() % 3:
 		0:
-			reward["gold"] = randi_range(20, 35)
+			reward["gold"] = randi_range(18, 28) + tier * 10
 		1:
-			reward["xp"] = randi_range(3, 6)
+			reward["xp"] = randi_range(3, 5) + tier * 2
 		2:
-			reward["gold"] = randi_range(10, 18)
+			reward["gold"] = randi_range(10, 16) + tier * 6
 			reward["xp"] = randi_range(2, 3)
-	var q := {
-		"kind": kind,
+	var penalty := {}
+	if randi() % 2 == 0:
+		penalty["gold"] = randi_range(6, 12) + tier * 4
+	else:
+		penalty["hp"] = randi_range(2, 3) + tier
+	return {
+		"kind": "gold",
 		"deadline": level + span,
-		"start_gold": player.gold,
-		"target": randi_range(20, 35) if kind == "gold" else 0,
+		"start_gold": int(player.gold),
+		"target": target,
 		"reward": reward,
+		"penalty": penalty,
 	}
-	return q
 
 
 func _quest_desc(q: Dictionary) -> String:
-	if q["kind"] == "survive":
-		return t("quest_survive") % int(q["deadline"])
-	return t("quest_gold") % [int(q["target"]), int(q["deadline"])]
+	return t("quest_gold") % int(q["target"])
 
 
 func _quest_reward_text(q: Dictionary) -> String:
 	var r: Dictionary = q["reward"]
-	var g: int = r["gold"]
-	var x: int = r["xp"]
+	var g: int = int(r["gold"])
+	var x: int = int(r["xp"])
 	if g > 0 and x > 0:
 		return t("quest_rew_gx") % [g, x]
 	if x > 0:
 		return t("quest_rew_x") % x
 	return t("quest_rew_g") % g
+
+
+func _quest_penalty_text(q: Dictionary) -> String:
+	var p: Dictionary = q.get("penalty", {})
+	if p.has("hp"):
+		return t("quest_pen_h") % int(p["hp"])
+	if p.has("gold"):
+		return t("quest_pen_g") % int(p["gold"])
+	return ""
 
 
 func _open_shop() -> void:
@@ -1112,7 +1130,7 @@ func _open_shop() -> void:
 	shop_offer = ids.slice(0, 3)
 	shop_bought = {}
 	shop_quest_pick = -1
-	shop_quests = [_make_quest("survive"), _make_quest("gold")]
+	shop_quests = [_make_quest(0), _make_quest(1)]
 	add_log(t("log_shop"))
 	_render_shop()
 	shop_ui.visible = true
@@ -1147,8 +1165,13 @@ func _render_shop() -> void:
 		var card: Dictionary = shop_quest_cards[i]
 		var picked := shop_quest_pick == i
 		card["title"].text = t("ui_quest") + (" *" if picked else "")
-		card["body"].text = _quest_desc(q) + "\n\n" + _quest_reward_text(q)
-		card["root"].disabled = shop_quest_pick != -1
+		card["body"].text = "%s\n%s\n\n%s\n%s" % [
+			_quest_desc(q),
+			t("quest_deadline") % int(q["deadline"]),
+			_quest_reward_text(q),
+			_quest_penalty_text(q),
+		]
+		card["root"].disabled = false
 		_style_button(card["root"], "primary" if picked else "secondary")
 
 
@@ -1176,9 +1199,8 @@ func _buy_item(idx: int) -> void:
 
 func _pick_quest(idx: int) -> void:
 	_sfx("button")
-	shop_quest_pick = idx
-	active_quest = shop_quests[idx].duplicate(true)
-	add_log(t("log_quest_take") % _quest_desc(active_quest))
+	# just highlight; nothing is committed until Continue is pressed
+	shop_quest_pick = -1 if shop_quest_pick == idx else idx
 	_render_shop()
 
 
@@ -1186,11 +1208,7 @@ func _check_quest_progress() -> void:
 	if active_quest.is_empty():
 		return
 	var q := active_quest
-	var done := false
-	if q["kind"] == "survive":
-		done = level >= int(q["deadline"])
-	else:
-		done = (int(player.gold) - int(q["start_gold"])) >= int(q["target"])
+	var done := (int(player.gold) - int(q["start_gold"])) >= int(q["target"])
 	if done:
 		var r: Dictionary = q["reward"]
 		if int(r["gold"]) > 0:
@@ -1201,12 +1219,21 @@ func _check_quest_progress() -> void:
 		add_log(t("log_quest_done") % _quest_reward_text(q))
 		update_hud()
 	elif level >= int(q["deadline"]):
+		var p: Dictionary = q.get("penalty", {})
+		if p.has("gold"):
+			player.gold = maxi(0, int(player.gold) - int(p["gold"]))
+		if p.has("hp"):
+			player.hp = maxi(1, int(player.hp) - int(p["hp"]))
 		active_quest = {}
-		add_log(t("log_quest_fail"))
+		add_log(t("quest_penalized") % _quest_penalty_text(q))
+		update_hud()
 
 
 func _close_shop() -> void:
 	_sfx("button")
+	if shop_quest_pick >= 0:
+		active_quest = shop_quests[shop_quest_pick].duplicate(true)
+		add_log(t("log_quest_take") % _quest_desc(active_quest))
 	shop_ui.visible = false
 	queue_redraw()
 
@@ -1220,7 +1247,12 @@ func _show_inventory() -> void:
 	if active_quest.is_empty():
 		inv_quest_label.text = t("inv_no_quest")
 	else:
-		inv_quest_label.text = _quest_desc(active_quest) + "\n" + _quest_reward_text(active_quest)
+		inv_quest_label.text = "%s\n%s\n%s\n%s" % [
+			_quest_desc(active_quest),
+			t("quest_deadline") % int(active_quest["deadline"]),
+			_quest_reward_text(active_quest),
+			_quest_penalty_text(active_quest),
+		]
 	_set_screen(S.INVENTORY)
 
 
