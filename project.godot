@@ -1,11 +1,11 @@
 ; Engine configuration file.
-; Paper Dungeon — Godot 4 project
+; Endless Descent — Godot 4 project
 
 config_version=5
 
 [application]
 
-config/name="Paper Dungeon"
+config/name="Endless Descent"
 run/main_scene="res://Main.tscn"
 config/features=PackedStringArray("4.3", "GL Compatibility")
 config/icon="res://icon.svg"

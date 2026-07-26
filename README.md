@@ -1,6 +1,6 @@
-# 📜 Paper Dungeon
+# 📜 Endless Descent
 
-Дигитална версия на pen-and-paper дъндживон кроулър, направена с **Godot 4**.
+Безкраен pen-and-paper дъндживон кроулър, направен с **Godot 4**.
 Едно приложение → Windows, Linux и (скоро) Android.
 
 ## Core механики (Фаза 0)

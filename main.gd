@@ -1,5 +1,5 @@
 extends Node2D
-## Paper Dungeon — core loop (Godot 4)
+## Endless Descent — core loop (Godot 4)
 ## Roll a die: odd = diagonal move, even = orthogonal move; number = steps
 ## (stops at wall). After rolling, up to 4 destination options appear;
 ## click one to slide there in a straight line. The travelled path is kept
@@ -490,7 +490,7 @@ func _build_ui() -> void:
 	menu_ui.theme = ui_theme
 	layer.add_child(menu_ui)
 	var title := _make_label(menu_ui, Vector2(40, 380), Vector2(640, 170), 56, C_ACCENT)
-	title.text = "PAPER\nDUNGEON"
+	title.text = "ENDLESS\nDESCENT"
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	play_btn = _make_button(menu_ui, "", Vector2(160, 630), Vector2(400, 120), "primary")
 	play_btn.add_theme_font_size_override("font_size", 40)
