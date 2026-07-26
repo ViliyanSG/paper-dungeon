@@ -1716,6 +1716,11 @@ func _exit_to_menu() -> void:
 	_show_menu()
 
 
+func _autosave() -> void:
+	if current_slot >= 0 and not player.is_empty() and not game_over:
+		_save_slot(current_slot, _serialize_state())
+
+
 # =====================================================================
 #  Local save slots (user://)
 # =====================================================================
@@ -1950,6 +1955,7 @@ func new_level() -> void:
 	_update_ability_ui()
 	update_hud()
 	queue_redraw()
+	_autosave()             # auto-save whenever a new floor begins
 
 
 # Random cell inside quarter q (0=top-left, 1=top-right, 2=bottom-left, 3=bottom-right).
