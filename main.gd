@@ -6,10 +6,12 @@ extends Node2D
 ## as a continuous pencil line. Touch + mouse supported.
 
 const GAME_VERSION := "dev"   # stamped with the CI build number on release
-const TILE := 36
+const TILE := 34
 const COLS := 20
 const ROWS := 20
+const SCREEN_W := 720
 const GRID_TOP := 100   # px from top where the play field starts
+const GRID_LEFT := (SCREEN_W - COLS * TILE) / 2   # centre the board (small side margins)
 
 const ORTHO_DIRS := [Vector2i(1, 0), Vector2i(-1, 0), Vector2i(0, 1), Vector2i(0, -1)]
 const DIAG_DIRS := [Vector2i(1, 1), Vector2i(1, -1), Vector2i(-1, 1), Vector2i(-1, -1)]
@@ -36,6 +38,17 @@ const C_BG_HI := Color(0.18, 0.165, 0.15)  # brick top edge
 const C_ACCENT := Color(0.910, 0.765, 0.290) # gold accent text
 const C_CREAM := Color(0.910, 0.874, 0.784)  # primary text
 const C_MUTED := Color(0.604, 0.561, 0.478)  # muted text
+# distinct colours for each possible move option after a roll
+const OPT_COLORS := [
+	Color(0.29, 0.49, 0.35),   # green
+	Color(0.18, 0.45, 0.78),   # blue
+	Color(0.87, 0.52, 0.14),   # orange
+	Color(0.57, 0.36, 0.73),   # purple
+	Color(0.80, 0.26, 0.33),   # red
+	Color(0.11, 0.60, 0.55),   # teal
+	Color(0.86, 0.42, 0.63),   # pink
+	Color(0.72, 0.56, 0.16),   # gold
+]
 
 # ---- Pixel sprites (8x8 maps + palette) ----
 const SPRITES := {
@@ -2246,7 +2259,7 @@ func _unhandled_input(event: InputEvent) -> void:
 	var world: Vector2 = get_global_transform_with_canvas().affine_inverse() * sp
 	if world.y < GRID_TOP:
 		return
-	var cell := Vector2i(int(world.x / TILE), int((world.y - GRID_TOP) / TILE))
+	var cell := Vector2i(int((world.x - GRID_LEFT) / TILE), int((world.y - GRID_TOP) / TILE))
 	if cell.x < 0 or cell.y < 0 or cell.x >= COLS or cell.y >= ROWS:
 		return
 
@@ -2370,8 +2383,9 @@ func _step_enemy(e: Dictionary) -> void:
 			if chase:
 				candidates.append(tgt)   # intercept: may step onto you to attack
 			continue
-		var occ = entity_at(tgt)
-		if occ != null and occ.type == "enemy":
+		# never step onto a live entity — other enemies OR items (coin/trap/heart/chest).
+		# the only exception is stepping onto YOU to attack, handled just above.
+		if entity_at(tgt) != null:
 			continue
 		candidates.append(tgt)
 	if candidates.is_empty():
@@ -2497,7 +2511,7 @@ func add_log(msg: String) -> void:
 #  Rendering
 # =====================================================================
 func cell_center(c: Vector2i) -> Vector2:
-	return Vector2(c.x * TILE + TILE / 2.0, GRID_TOP + c.y * TILE + TILE / 2.0)
+	return Vector2(GRID_LEFT + c.x * TILE + TILE / 2.0, GRID_TOP + c.y * TILE + TILE / 2.0)
 
 
 func _draw_sprite(sprite_name: String, ctr: Vector2) -> void:
@@ -2516,7 +2530,7 @@ func _draw_sprite(sprite_name: String, ctr: Vector2) -> void:
 
 
 func _draw_background() -> void:
-	var w := COLS * TILE
+	var w := SCREEN_W
 	var h := 1280
 	draw_rect(Rect2(0, 0, w, h), C_BG, true)
 	var bw := 48
@@ -2540,21 +2554,23 @@ func _draw() -> void:
 	var grid_bottom := GRID_TOP + ROWS * TILE
 
 	# parchment play field
-	draw_rect(Rect2(0, GRID_TOP, COLS * TILE, ROWS * TILE), C_PAPER, true)
+	draw_rect(Rect2(GRID_LEFT, GRID_TOP, COLS * TILE, ROWS * TILE), C_PAPER, true)
 
 	# grid lines
 	for i in range(COLS + 1):
-		draw_line(Vector2(i * TILE, GRID_TOP), Vector2(i * TILE, grid_bottom), C_LINE, 1.0)
+		draw_line(Vector2(GRID_LEFT + i * TILE, GRID_TOP), Vector2(GRID_LEFT + i * TILE, grid_bottom), C_LINE, 1.0)
 	for j in range(ROWS + 1):
-		draw_line(Vector2(0, GRID_TOP + j * TILE), Vector2(COLS * TILE, GRID_TOP + j * TILE), C_LINE, 1.0)
+		draw_line(Vector2(GRID_LEFT, GRID_TOP + j * TILE), Vector2(GRID_LEFT + COLS * TILE, GRID_TOP + j * TILE), C_LINE, 1.0)
 
-	# gold trim around the field
-	draw_rect(Rect2(0, GRID_TOP - 3, COLS * TILE, 3), C_GOLD, true)
-	draw_rect(Rect2(0, grid_bottom, COLS * TILE, 3), C_GOLD, true)
+	# gold trim — full frame around the field
+	draw_rect(Rect2(GRID_LEFT - 3, GRID_TOP - 3, COLS * TILE + 6, 3), C_GOLD, true)           # top
+	draw_rect(Rect2(GRID_LEFT - 3, grid_bottom, COLS * TILE + 6, 3), C_GOLD, true)            # bottom
+	draw_rect(Rect2(GRID_LEFT - 3, GRID_TOP - 3, 3, ROWS * TILE + 6), C_GOLD, true)           # left
+	draw_rect(Rect2(GRID_LEFT + COLS * TILE, GRID_TOP - 3, 3, ROWS * TILE + 6), C_GOLD, true) # right
 
 	# walls — stone blocks, beveled only on the outer edge of each wall mass
 	for w in walls:
-		var wx: float = w.x * TILE
+		var wx: float = GRID_LEFT + w.x * TILE
 		var wy: float = GRID_TOP + w.y * TILE
 		draw_rect(Rect2(wx, wy, TILE, TILE), C_WALL, true)
 		if not is_wall(w + Vector2i(0, -1)):
@@ -2592,17 +2608,19 @@ func _draw() -> void:
 	# movement options (after a roll) — show the full route incl. turns
 	var pc_start := cell_center(player.pos)
 	var opt_r := TILE * 0.40
-	for opt in options:
+	for i in options.size():
+		var opt: Vector2i = options[i]
+		var col: Color = OPT_COLORS[i % OPT_COLORS.size()]
 		var op_path: Array = option_paths.get(opt, [])
 		var pts2 := PackedVector2Array()
 		pts2.append(pc_start)
 		for c in op_path:
 			pts2.append(cell_center(c))
 		if pts2.size() >= 2:
-			draw_polyline(pts2, Color(0.29, 0.49, 0.35, 0.5), 2.0, true)
+			draw_polyline(pts2, Color(col.r, col.g, col.b, 0.6), 2.5, true)
 		var oc := cell_center(opt)
-		draw_circle(oc, opt_r, Color(0.29, 0.49, 0.35, 0.30))
-		draw_arc(oc, opt_r, 0, TAU, 22, C_GREEN, 2.0)
+		draw_circle(oc, opt_r, Color(col.r, col.g, col.b, 0.28))
+		draw_arc(oc, opt_r, 0, TAU, 22, col, 2.5)
 
 	# mage targeting — highlight enemies within range 4
 	if casting:
@@ -2620,7 +2638,7 @@ func _draw() -> void:
 					continue
 				var wc: Vector2i = player.pos + Vector2i(dx, dy)
 				if is_wall(wc):
-					draw_rect(Rect2(wc.x * TILE, GRID_TOP + wc.y * TILE, TILE, TILE), Color(0.95, 0.6, 0.15), false, 3.0)
+					draw_rect(Rect2(GRID_LEFT + wc.x * TILE, GRID_TOP + wc.y * TILE, TILE, TILE), Color(0.95, 0.6, 0.15), false, 3.0)
 
 	# player (class-specific hero sprite)
 	_draw_sprite(hero_class, cell_center(player.pos))
