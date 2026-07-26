@@ -58,21 +58,72 @@ const SPRITES := {
 	"beartrap": ["..MMMM..", ".MmmmmM.", "MmKKKKmM", "MmKKKKmM", "MmmmmmmM", ".MmmmmM.", "..MMMM..", "........"],
 	"coin": ["..KKKK..", ".KgyygK.", "KgyyggsK", "KgygggsK", "KgygggsK", "KgggggsK", ".KgsssK.", "..KKKK.."],
 	"heart": [".rr..rr.", "rprrrrrr", "rrrrrrrr", "rrrrrrrr", ".rrrrrr.", "..rrrr..", "...rr...", "........"],
-	"chest": ["........", ".KKKKKK.", ".KwwwwK.", ".gggggg.", ".KwllwK.", ".KwllwK.", ".KKKKKK.", "........"],
+	"chest": ["........", ".KKKKKK.", "KwwwwwwK", "KwyyyywK", "KKKggKKK", "KwwyywwK", "KwwwwwwK", ".KKKKKK."],
 	"player": ["...dd...", "..dddd..", "..ffff..", "..fKfK..", ".buuuub.", ".uUUUUu.", "..u..u..", "..b..b.."],
 	"knight": ["....KKKK....", "...KaaaaK...", "..KaaaaaaK..", "..KaKKKKaK..", "..KaaaaaaK..", "...KAAAAK...", ".KAAggAAK...", ".KAaggaAK...", ".KAaaaaAK...", "..AAaaAA....", "..AA..AA....", ".KKK..KKK..."],
 	"mage": [".....K......", "....KvK.....", "...KvvvK....", "..KvvvvvK...", ".KvvvvvvvK..", "...KffffK...", "...KfKKfK...", "..KVVVVVVK..", ".KVvvvvvVK..", ".KVvvyvvVK..", ".KVvvvvvVK..", "..VVV.VVV..."],
 	"ranger": ["...JJJJ.....", "..JJJJJJ....", ".JJffffJJ.w.", ".JJfKKfJJnw.", ".JJffffJJ.w.", "..jJJJJj.nw.", ".jJJJJJJj.w.", ".jJJJJJJjnw.", ".jJJJJJJj.w.", "..JJ..JJ....", "..JJ..JJ....", ".jjj..jjj..."],
-	"door": ["..DDDD..", ".DwwwwD.", "DwwwwwwD", "DwwwywwD", "DwwwwwwD", "DwwwwwwD", "DwwwwwwD", "DDDDDDDD"],
+	"door": [".KKKKKK.", "KDDDDDDK", "KDwwwwDK", "KDwwwwDK", "KDwyywDK", "KDwwwwDK", "KDDDDDDK", "KKKKKKKK"],
 	"stairs": ["........", "QQ......", "QqQQ....", "QqQqQQ..", "QqQqQqQQ", "QqQqQqQq", "QqQqQqQq", "QQQQQQQQ"],
 	"grave": ["...KKKKKK...", "..KqqqqqqK..", ".KqqqqqqqqK.", ".KqqqKKqqqK.", ".KqKKKKKKqK.", ".KqKKKKKKqK.", ".KqqqKKqqqK.", ".KqqqKKqqqK.", ".KqqqqqqqqK.", ".KQqqqqqqQK.", "..oooooooo..", ".oooooooooo."],
 	"gem": ["...cc...", "..cccc..", ".cvvvvc.", "cvvvvvvc", ".Vvvvvv.", "..VvvV..", "...VV...", "........"],
 	"shield": [".gyyyyg.", "gyyyyyyg", "gyyggyyg", "gyyggyyg", "gyyyyyyg", ".gyyyyg.", "..gyyg..", "...gg..."],
 	"fire": ["...y....", "...yy...", "..yFy...", "..yFFy..", ".yFFRFy.", ".yFRRFy.", ".FFRRFF.", "..FFFF.."],
 	"pick": ["m......m", ".m....m.", "..mmmm..", "...MM...", "...ww...", "...ww...", "...ww...", "...ww..."],
-	"bag": ["...KK...", "..wKKw..", ".wwwwww.", "wwwwwwww", "wwCCCCww", "wwwwwwww", ".wwwwww.", "..wwww.."],
+	"bag": ["..K..K..", ".KwKKwK.", "KwwwwwwK", "KwCCCCwK", "KwCwwCwK", "KwwwwwwK", ".KwwwwK.", "..KKKK.."],
 	"die": ["KKKKKKKK", "KnnnnnnK", "KnKnnKnK", "KnnnnnnK", "KnnnKnnK", "KnnnnnnK", "KnKnnKnK", "KKKKKKKK"],
 	"scroll": ["..nnnn..", ".nKKKKn.", "nnnnnnnn", "nKKKKKKn", "nnnnnnnn", "nKKKKKKn", ".nKKKKn.", "..nnnn.."],
+	"shop": ["KKKKKKKK", "KrrnnrrK", "KrrnnrrK", "KKKKKKKK", ".KwwwwK.", ".KwwwwK.", ".KwwwwK.", ".KKKKKK."],
+	# ---- carried items ----
+	"potion": ["...KK...", "..KnnK..", "..KnnK..", ".KrrrrK.", "KrrrrrrK", "KryyyyrK", "KrrrrrrK", ".KKKKKK."],
+	"elixir": ["...KK...", "..KnnK..", ".KccccK.", "KccccccK", "KcvvvvcK", "KcvvvvcK", "KccccccK", ".KKKKKK."],
+	"bandage": ["........", ".nnnnnn.", "nnnrrnnn", "nnrrrrnn", "nnrrrrnn", "nnnrrnnn", ".nnnnnn.", "........"],
+	"sscroll": [".nnnnnn.", "nnnnnnnn", "naaaaaan", "naaaaaan", "nnaaaann", "nnnaannn", "nnnnnnnn", ".nnnnnn."],
+	"mirror": ["..mmmm..", ".mccccm.", "mcWccccm", "mccccccm", ".mccccm.", "..mmmm..", "...ww...", "...ww..."],
+	"bomb": ["....K.K.", ".....Ky.", "..KKKK..", ".KKKKKK.", "KKMKKKKK", "KKKKKKKK", ".KKKKKK.", "..KKKK.."],
+	"fflask": ["...KK...", "..KnnK..", ".KFFFFK.", "KFFFFFFK", "KFyyyyFK", "KFFRRFFK", "KFFFFFFK", ".KKKKKK."],
+	"hourglass": ["wwwwwwww", ".nyyyyn.", "..nyyn..", "...nn...", "...nn...", "..nnnn..", ".nyyyyn.", "wwwwwwww"],
+	"smokeb": ["..MM.M..", ".MmmMmM.", "MmmmmmmM", "MmmmmmmM", ".MmmmmM.", "..MMMM..", "...KK...", "...KK..."],
+	"horn": ["......gg", ".....gyg", "....gyg.", "..ggyg..", ".gyyg...", "gyyg....", "gyg.....", ".g......"],
+	"ladder": [".w....w.", ".w....w.", ".wwwwww.", ".w....w.", ".wwwwww.", ".w....w.", ".wwwwww.", ".w....w."],
+	"boots": ["..ww....", "..ww....", "..ww....", "..ww....", "..wwww..", ".wwwwww.", "KKKKKKK.", "........"],
+	"luckydie": ["gggggggg", "gyyyyyyg", "gyKyyKyg", "gyyyyyyg", "gyyKyyyg", "gyyyyyyg", "gyKyyKyg", "gggggggg"],
+	"blink": ["..vvvv..", ".vvvvvv.", "vvvWvvvv", "vvvvvvvv", "vVvvvvVv", ".VvvvvV.", "..VVVV..", "........"],
+	"pickaxe": [".mmmmmm.", "mmKKKKmm", "...ww...", "...ww...", "...ww...", "...ww...", "...ww...", "........"],
+	"clover": [".GG..GG.", "GGGGGGGG", "GGGEGGGG", ".GGGGGG.", "..GGGG..", "...EE...", "...EE...", "...EE..."],
+	"magnet": ["..rrrr..", ".rrrrrr.", "rr....rr", "rr....rr", "rr....rr", "rr....rr", "mm....mm", "mm....mm"],
+	"key": [".ggg....", "g.K.g...", "g.K.g...", ".ggg....", "..gg....", "..gggg..", "..gg.g..", "..gg.gg."],
+	"rune": ["..QQQQ..", ".QqqyqqQ", "QqqyyqqQ", "QqyyyyqQ", "QqqyyqqQ", "QqqyqqqQ", ".QqqqqQ.", "..QQQQ.."],
+	"trapkit": ["m....m..", ".m..m...", "..mm....", "..mm....", "..mm....", ".m..m...", "m....m..", "........"],
+	"crystal": ["...pp...", "..pppp..", ".prrrrp.", "prrrrrrp", ".Rrrrrr.", "..RrrR..", "...RR...", "........"],
+	"tome": [".KKKKKK.", ".KwwwwK.", ".KwggwK.", ".KwggwK.", ".KwwwwK.", ".KwwwwK.", ".KnnnnK.", ".KKKKKK."],
+	# ---- permanent buff icons ----
+	"ironskin": [".aaaaaa.", "aAAAAAAa", "aAaaaaAa", "aAaAAaAa", "aAaaaaAa", "aAAAAAAa", ".aaaaaa.", "........"],
+	"goldsense": ["..y..y..", "...gg...", "..ggyg..", ".gyyggg.", "gyggggsg", ".ggggsg.", "..gggs..", "...y..y."],
+	"treasure": [".yy..yy.", "..KKKK..", ".KwwwwK.", ".KyyyyK.", ".KwggwK.", ".KwwwwK.", "..KKKK..", ".yy..yy."],
+	"regen": ["...GG...", "..GGGG..", ".GrrrrG.", "GrrGGrrG", "GrGGGGrG", "GrrGGrrG", ".GrrrrG.", "..GGGG.."],
+	"surestep": ["..MM....", ".MwwM...", ".MwwM...", ".MwwwM..", ".MwwwwM.", "MwwwwwwM", "MKKKKKKM", "........"],
+	"stride": ["...g....", "..gg....", ".ggggggg", "gggggggg", ".ggggggg", "..gg....", "...g....", "........"],
+	"keeneye": ["........", ".nnnnnn.", "nnccccnn", "ncKKKKcn", "nnccccnn", ".nnnnnn.", "........", "........"],
+	"scholar": [".nnnnnn.", "nnKnnKnn", "nnKnnKnn", "nnKnnKnn", "nnKnnKnn", "nnKnnKnn", ".nnnnnn.", "..wwww.."],
+	"bargain": ["..KKKK..", ".KwwwwK.", "KwyyyywK", "KwyggywK", "KwyggywK", "KwyyyywK", ".KwwwwK.", "..KKKK.."],
+	"secondw": ["...W....", "..WyW...", ".WyyyW..", "WyyFyyW.", ".WyyyW..", "..WyW...", "...W....", "........"],
+	"vampiric": ["..W..W..", ".WW..WW.", ".WW..WW.", "..W..W..", "...rr...", "..rrrr..", "...rr...", "....r..."],
+	"luckyroll": ["nnnnnnnn", "nyKnnKyn", "nyKnnKyn", "nynnnnyn", "nyKnnKyn", "nyKnnKyn", "nnnnnnnn", "........"],
+	# ---- temporary buff icons ----
+	"dgold": ["..gggg..", ".gyyyyg.", "..gggg..", ".gyyyyg.", "..gggg..", ".gyyyyg.", "..gggg..", "........"],
+	"shielded": ["ccgyyggc", "cgyyyygc", "cgyyggyc", "cgyyggyc", "cgyyyygc", ".cgyyyc.", "..cggc..", "...cc..."],
+	"frozen": ["c..cc..c", "cnyyyync", ".cnyync.", "..cnnc..", "..cnnc..", ".cnnnnc.", "cnyyyync", "c..cc..c"],
+	"terror": ["..nnnn..", ".nnnnnn.", "nnKKKKnn", "nKKnnKKn", "nnnKKnnn", "nnKnKnnn", ".nKnKnn.", "..nnnn.."],
+	"regenb": ["..GGGG..", "..GGGG..", "GGGGGGGG", "GGGGGGGG", "GGGGGGGG", "GGGGGGGG", "..GGGG..", "..GGGG.."],
+	"swift": ["...y....", "..yy....", ".yyyy...", "...y....", "..ww....", ".wwww...", "KKKKK...", "........"],
+	"gtouch": ["..y..y..", ".yfffffy", "yffffffy", ".yffffy.", "..yggy..", ".ygggy..", "..ygy...", "...y...."],
+	"berserk": ["r......r", ".r....r.", "..rrrr..", ".rKrrKr.", "..rrrr..", ".rKKKKr.", "..rrrr..", ".r....r."],
+	"ghost": ["..nnnn..", ".nnnnnn.", "nnKnnKnn", "nnnnnnnn", "nnnnnnnn", "nnnnnnnn", "n.nn.nn.", ".n.nn.n."],
+	"eagleeye": ["...c....", ".ccnncc.", "cnnKKnnc", "cnKKKKnc", "cnnKKnnc", ".ccnncc.", "...c....", "........"],
+	"fortune": ["..KKKK..", ".KgyygK.", "KgyGGysK", "KgGGGGsK", "KgGGGGsK", "KgyGGysK", ".KgsssK.", "..KKKK.."],
+	"guardian": [".gyyyyg.", "gyyKyyyg", "gyKKKyyg", "gyyKyyyg", "gyyyyyyg", ".gyyyyg.", "..gyyg..", "...gg..."],
+	"xpsurge": ["...c....", "..ccc...", ".ccccc..", "cc.c.ccc", ".ccvcc..", "..cvc...", "...V....", "........"],
 }
 var SPRITE_PAL := {
 	"K": Color8(43, 43, 43), "g": Color8(205, 161, 42), "y": Color8(244, 221, 132),
@@ -116,6 +167,30 @@ const STRINGS := {
 	"inv_no_items": ["No items yet", "Още няма предмети", "Aucun objet", "Keine Gegenstände"],
 	"inv_no_quest": ["No active quest", "Няма активен куест", "Aucune quête", "Kein Auftrag"],
 	"ui_continue": ["Continue", "Продължи", "Continuer", "Weiter"],
+	"ui_bag_title": ["BAG", "РАНИЦА", "SAC", "TASCHE"],
+	"ui_buffs": ["Buffs", "Бъфове", "Bonus", "Buffs"],
+	"ui_no_buffs": ["No buffs yet", "Още няма бъфове", "Aucun bonus", "Noch keine Buffs"],
+	"ui_use_item": ["Use an item", "Използвай предмет", "Utiliser un objet", "Gegenstand nutzen"],
+	"ui_close": ["Close", "Затвори", "Fermer", "Schließen"],
+	"ui_carried": ["%d / %d carried", "%d / %d носени", "%d / %d portés", "%d / %d getragen"],
+	"ui_empty_slot": ["empty", "празно", "vide", "leer"],
+	"ui_no_items_yet": ["Bag is empty", "Раницата е празна", "Sac vide", "Tasche ist leer"],
+	"col_mission": ["MISSION", "МИСИЯ", "MISSION", "AUFTRAG"],
+	"col_reward": ["REWARD", "НАГРАДА", "RÉCOMPENSE", "BELOHNUNG"],
+	"col_penalty": ["PENALTY", "НАКАЗАНИЕ", "PÉNALITÉ", "STRAFE"],
+	"log_buff": ["Gained: %s", "Получи: %s", "Obtenu : %s", "Erhalten: %s"],
+	"buff_left_f": ["%d floors left", "остават %d етажа", "%d étages restants", "noch %d Ebenen"],
+	"buff_left_t": ["%d turns left", "остават %d хода", "%d tours restants", "noch %d Züge"],
+	"buff_left_u": ["next hit", "следващ удар", "prochain coup", "nächster Treffer"],
+	"log_item_used": ["Used %s.", "Използва %s.", "Utilisé %s.", "%s benutzt."],
+	"log_bag_full": ["Bag is full!", "Раницата е пълна!", "Sac plein !", "Tasche ist voll!"],
+	"log_blink": ["Choose where to blink.", "Избери къде да скочиш.", "Choisissez la destination.", "Wähle das Ziel."],
+	"log_pick_wall": ["Choose a wall to break.", "Избери стена за чупене.", "Choisissez un mur.", "Wähle eine Wand."],
+	"log_boom": ["Boom! %d enemies destroyed.", "Бум! %d врага унищожени.", "Boum ! %d ennemis détruits.", "Bumm! %d Gegner vernichtet."],
+	"log_magnet": ["The magnet pulls in %d gold.", "Магнитът събра %d злато.", "L'aimant récolte %d or.", "Der Magnet zieht %d Gold."],
+	"log_traps_gone": ["All traps disarmed.", "Всички капани обезвредени.", "Pièges désarmés.", "Alle Fallen entschärft."],
+	"log_second_wind": ["Second wind! You survive at 1 HP.", "Второ дихание! Оцеля с 1 HP.", "Second souffle ! 1 PV.", "Zweiter Atem! 1 HP."],
+	"log_mirror": ["The mirror turns the blow back!", "Огледалото върна удара!", "Le miroir renvoie le coup !", "Der Spiegel wirft zurück!"],
 	"shop_hdr_buy": ["Shop", "Магазин", "Boutique", "Laden"],
 	"shop_hdr_quest": ["Quest — choose 1", "Мисия — избери 1", "Quête — choisir 1", "Auftrag — wähle 1"],
 	"shop_owned": ["owned", "купено", "acheté", "gekauft"],
@@ -132,6 +207,7 @@ const STRINGS := {
 	"quest_rew_g": ["Reward: %d gold", "Награда: %d злато", "Récompense : %d or", "Belohnung: %d Gold"],
 	"quest_rew_x": ["Reward: %d XP", "Награда: %d XP", "Récompense : %d XP", "Belohnung: %d XP"],
 	"quest_rew_gx": ["Reward: %d gold + %d XP", "Награда: %d злато + %d XP", "Récompense : %d or + %d XP", "Belohnung: %d Gold + %d XP"],
+	"quest_rew_b": ["Reward: %s (permanent)", "Награда: %s (постоянно)", "Récompense : %s (permanent)", "Belohnung: %s (dauerhaft)"],
 	"quest_pen_g": ["Penalty: -%d gold", "Пенълти: -%d злато", "Pénalité : -%d or", "Strafe: -%d Gold"],
 	"quest_pen_h": ["Penalty: -%d HP", "Пенълти: -%d HP", "Pénalité : -%d PV", "Strafe: -%d HP"],
 	"quest_deadline": ["Deadline: Floor %d", "Срок: Етаж %d", "Limite : Étage %d", "Frist: Ebene %d"],
@@ -230,13 +306,179 @@ const TUT_SHOP := [
 	{"i": ["scroll"], "t": "tut_quest_t", "b": "tut_quest_b"},
 ]
 
-# Shop offers 3 random items from this pool. "eff" handled in _buy_item.
-const SHOP_ITEMS := [
-	{"id": "potion", "icon": "heart", "t": "shop_potion_t", "b": "shop_potion_b", "cost": 8},
-	{"id": "elixir", "icon": "heart", "t": "shop_elixir_t", "b": "shop_elixir_b", "cost": 14},
-	{"id": "maxhp", "icon": "gem", "t": "shop_maxhp_t", "b": "shop_maxhp_b", "cost": 18},
-	{"id": "tome", "icon": "scroll", "t": "shop_tome_t", "b": "shop_tome_b", "cost": 12},
-]
+# ---- Item catalogue ----
+# "carry" items go into the bag (max BAG_MAX) and are used from the Items popup.
+# Non-carry items apply the moment you buy them. Names/descriptions are inline
+# 4-language arrays read through _L().
+const BAG_MAX := 10
+const ITEMS := {
+	"potion": {"cost": 8, "carry": true,
+		"n": ["Health potion", "Отвара", "Potion", "Heiltrank"],
+		"d": ["Restore 5 HP", "Възстановява 5 HP", "Rend 5 PV", "Stellt 5 HP her"]},
+	"elixir": {"cost": 14, "carry": true,
+		"n": ["Elixir", "Еликсир", "Élixir", "Elixier"],
+		"d": ["Full heal", "Пълно лечение", "Soin complet", "Volle Heilung"]},
+	"bandage": {"cost": 11, "carry": true,
+		"n": ["Bandage", "Превръзка", "Bandage", "Verband"],
+		"d": ["+2 HP, regen 3 floors", "+2 HP, регенерация 3 етажа", "+2 PV, régén 3 étages", "+2 HP, Regen 3 Ebenen"]},
+	"sscroll": {"cost": 12, "carry": true,
+		"n": ["Shield scroll", "Свитък щит", "Parchemin bouclier", "Schildrolle"],
+		"d": ["Absorbs the next hit", "Поема следващия удар", "Absorbe le prochain coup", "Absorbiert den Treffer"]},
+	"mirror": {"cost": 15, "carry": true,
+		"n": ["Mirror shard", "Огледален къс", "Éclat de miroir", "Spiegelscherbe"],
+		"d": ["Next attacker dies", "Нападателят умира", "Le prochain attaquant meurt", "Angreifer stirbt"]},
+	"bomb": {"cost": 16, "carry": true,
+		"n": ["Bomb", "Бомба", "Bombe", "Bombe"],
+		"d": ["Kills enemies in radius 2", "Убива враговете в радиус 2", "Tue les ennemis rayon 2", "Tötet Gegner Radius 2"]},
+	"fflask": {"cost": 13, "carry": true,
+		"n": ["Fire flask", "Огнена колба", "Fiole de feu", "Feuerflasche"],
+		"d": ["Burns enemies in radius 1", "Изгаря враговете в радиус 1", "Brûle les ennemis rayon 1", "Verbrennt Gegner Radius 1"]},
+	"hourglass": {"cost": 14, "carry": true,
+		"n": ["Hourglass", "Пясъчен часовник", "Sablier", "Sanduhr"],
+		"d": ["Enemies frozen 2 turns", "Враговете спират 2 хода", "Ennemis gelés 2 tours", "Gegner 2 Züge starr"]},
+	"smokeb": {"cost": 13, "carry": true,
+		"n": ["Smoke bomb", "Димка", "Fumigène", "Rauchbombe"],
+		"d": ["Unseen for 2 floors", "Не те гонят 2 етажа", "Invisible 2 étages", "2 Ebenen ungesehen"]},
+	"horn": {"cost": 15, "carry": true,
+		"n": ["War horn", "Боен рог", "Cor de guerre", "Kriegshorn"],
+		"d": ["Enemies flee 1 floor", "Враговете бягат 1 етаж", "Ennemis fuient 1 étage", "Gegner fliehen 1 Ebene"]},
+	"ladder": {"cost": 20, "carry": true,
+		"n": ["Rope ladder", "Въжена стълба", "Échelle de corde", "Strickleiter"],
+		"d": ["Jump to the exit", "Мигом до изхода", "Saut vers la sortie", "Sprung zum Ausgang"]},
+	"boots": {"cost": 9, "carry": true,
+		"n": ["Swift boots", "Бързи ботуши", "Bottes rapides", "Schnelle Stiefel"],
+		"d": ["+2 steps next roll", "+2 стъпки следващ зар", "+2 pas au prochain lancer", "+2 Schritte nächster Wurf"]},
+	"luckydie": {"cost": 10, "carry": true,
+		"n": ["Loaded die", "Кован зар", "Dé pipé", "Gezinkter Würfel"],
+		"d": ["Roll the die again", "Хвърляш зара наново", "Relancer le dé", "Würfle erneut"]},
+	"blink": {"cost": 18, "carry": true,
+		"n": ["Blink stone", "Камък на скока", "Pierre de saut", "Blinkstein"],
+		"d": ["Teleport to a free cell", "Телепорт до свободна клетка", "Téléporte sur une case libre", "Teleport auf freies Feld"]},
+	"pickaxe": {"cost": 10, "carry": true,
+		"n": ["Pickaxe", "Кирка", "Pioche", "Spitzhacke"],
+		"d": ["Break one wall", "Чупи една стена", "Casse un mur", "Bricht eine Wand"]},
+	"clover": {"cost": 15, "carry": true,
+		"n": ["Lucky clover", "Щастлива детелина", "Trèfle porte-bonheur", "Glücksklee"],
+		"d": ["2x gold for 3 floors", "2x злато за 3 етажа", "2x or pendant 3 étages", "2x Gold für 3 Ebenen"]},
+	"magnet": {"cost": 17, "carry": true,
+		"n": ["Magnet", "Магнит", "Aimant", "Magnet"],
+		"d": ["Collect all coins", "Събира всички монети", "Récolte toutes les pièces", "Sammelt alle Münzen"]},
+	"key": {"cost": 12, "carry": true,
+		"n": ["Skeleton key", "Шперц", "Passe-partout", "Dietrich"],
+		"d": ["Next chest gives 3x", "Следващият сандък 3x", "Prochain coffre 3x", "Nächste Truhe 3x"]},
+	"rune": {"cost": 12, "carry": true,
+		"n": ["Charge rune", "Руна на заряд", "Rune de charge", "Ladungsrune"],
+		"d": ["+1 ability charge", "+1 заряд способност", "+1 charge de pouvoir", "+1 Fähigkeitsladung"]},
+	"trapkit": {"cost": 9, "carry": true,
+		"n": ["Trap kit", "Комплект инструменти", "Kit à pièges", "Fallen-Set"],
+		"d": ["Disarms all traps", "Обезврежда капаните", "Désarme les pièges", "Entschärft alle Fallen"]},
+	"crystal": {"cost": 18, "carry": false,
+		"n": ["Heart crystal", "Кристал сърце", "Cristal de cœur", "Herzkristall"],
+		"d": ["+2 Max HP (permanent)", "+2 Max HP (постоянно)", "+2 PV max (permanent)", "+2 Max-HP (dauerhaft)"]},
+	"tome": {"cost": 12, "carry": false,
+		"n": ["Tome of insight", "Том на прозрението", "Tome du savoir", "Buch der Einsicht"],
+		"d": ["+3 XP toward level", "+3 XP към ниво", "+3 XP vers le niveau", "+3 XP zum Level"]},
+}
+
+# ---- Buff catalogue ----
+# perm buffs last the whole run and stack; temp buffs carry a counter.
+# "u" is the counter unit shown next to a temp buff: floors / turns / use.
+const BUFFS := {
+	"vitality": {"perm": true, "i": "crystal",
+		"n": ["Vitality", "Жизненост", "Vitalité", "Vitalität"],
+		"d": ["+2 Max HP each", "+2 Max HP всеки", "+2 PV max chacun", "+2 Max-HP je"]},
+	"charged": {"perm": true, "i": "shield",
+		"n": ["Charged", "Зареден", "Chargé", "Geladen"],
+		"d": ["+1 ability charge", "+1 заряд способност", "+1 charge", "+1 Ladung"]},
+	"veteran": {"perm": true, "i": "gem",
+		"n": ["Veteran", "Ветеран", "Vétéran", "Veteran"],
+		"d": ["Hero level", "Ниво на героя", "Niveau du héros", "Heldenstufe"]},
+	"ironskin": {"perm": true, "i": "ironskin",
+		"n": ["Iron skin", "Желязна кожа", "Peau de fer", "Eisenhaut"],
+		"d": ["-1 damage taken", "-1 получена щета", "-1 dégât subi", "-1 Schaden"]},
+	"goldsense": {"perm": true, "i": "goldsense",
+		"n": ["Gold sense", "Усет за злато", "Sens de l'or", "Goldsinn"],
+		"d": ["+1 gold per coin", "+1 злато на монета", "+1 or par pièce", "+1 Gold pro Münze"]},
+	"treasure": {"perm": true, "i": "treasure",
+		"n": ["Treasure hunter", "Иманяр", "Chasseur de trésor", "Schatzjäger"],
+		"d": ["Chests give +50%", "Сандъците дават +50%", "Coffres +50%", "Truhen +50%"]},
+	"regen": {"perm": true, "i": "regen",
+		"n": ["Regeneration", "Регенерация", "Régénération", "Regeneration"],
+		"d": ["+1 HP each floor", "+1 HP на всеки етаж", "+1 PV par étage", "+1 HP pro Ebene"]},
+	"surestep": {"perm": true, "i": "surestep",
+		"n": ["Sure step", "Сигурна стъпка", "Pas sûr", "Sicherer Tritt"],
+		"d": ["Traps steal half", "Капаните крадат наполовина", "Pièges volent moitié", "Fallen stehlen halb"]},
+	"stride": {"perm": true, "i": "stride",
+		"n": ["Long stride", "Дълга крачка", "Grande foulée", "Langer Schritt"],
+		"d": ["+1 step per roll", "+1 стъпка на всеки зар", "+1 pas par lancer", "+1 Schritt pro Wurf"]},
+	"keeneye": {"perm": true, "i": "keeneye",
+		"n": ["Keen eye", "Остро око", "Œil vif", "Scharfes Auge"],
+		"d": ["Noticed from 5, not 7", "Усещат те от 5, не 7", "Repéré à 5, pas 7", "Bemerkt ab 5, nicht 7"]},
+	"scholar": {"perm": true, "i": "scholar",
+		"n": ["Scholar", "Учен", "Érudit", "Gelehrter"],
+		"d": ["+1 XP per floor", "+1 XP на етаж", "+1 XP par étage", "+1 XP pro Ebene"]},
+	"bargain": {"perm": true, "i": "bargain",
+		"n": ["Bargainer", "Пазарлък", "Négociateur", "Feilscher"],
+		"d": ["Shop prices -20%", "Цените в шопа -20%", "Prix -20%", "Preise -20%"]},
+	"secondw": {"perm": true, "i": "secondw",
+		"n": ["Second wind", "Второ дихание", "Second souffle", "Zweiter Atem"],
+		"d": ["Survive at 1 HP, 1/floor", "Оцеляваш с 1 HP, 1/етаж", "Survit à 1 PV, 1/étage", "Überlebe mit 1 HP"]},
+	"vampiric": {"perm": true, "i": "vampiric",
+		"n": ["Vampiric", "Вампирско", "Vampirique", "Vampirisch"],
+		"d": ["Kills heal 1 HP", "Убийство лекува 1 HP", "Tuer soigne 1 PV", "Töten heilt 1 HP"]},
+	"luckyroll": {"perm": true, "i": "luckyroll",
+		"n": ["Lucky roll", "Щастлив зар", "Lancer chanceux", "Glückswurf"],
+		"d": ["Chance to roll a 6", "Шанс зарът да е 6", "Chance de faire 6", "Chance auf eine 6"]},
+	"dgold": {"perm": false, "i": "dgold", "u": "f",
+		"n": ["Double gold", "Двойно злато", "Or double", "Doppeltes Gold"],
+		"d": ["2x gold", "2x злато", "2x or", "2x Gold"]},
+	"hidden": {"perm": false, "i": "smokeb", "u": "f",
+		"n": ["Hidden", "Скрит", "Caché", "Versteckt"],
+		"d": ["Enemies don't chase", "Враговете не те гонят", "Ennemis ne chassent pas", "Gegner jagen nicht"]},
+	"shielded": {"perm": false, "i": "shielded", "u": "u",
+		"n": ["Shielded", "Защитен", "Protégé", "Geschützt"],
+		"d": ["Absorbs the next hit", "Поема следващия удар", "Absorbe le prochain coup", "Absorbiert Treffer"]},
+	"mirrored": {"perm": false, "i": "mirror", "u": "u",
+		"n": ["Mirrored", "Огледален", "Miroir", "Gespiegelt"],
+		"d": ["Attacker dies instead", "Нападателят умира вместо теб", "L'attaquant meurt", "Angreifer stirbt"]},
+	"frozen": {"perm": false, "i": "frozen", "u": "t",
+		"n": ["Frozen time", "Спряло време", "Temps gelé", "Zeit gefroren"],
+		"d": ["Enemies don't move", "Враговете не мърдат", "Ennemis immobiles", "Gegner bewegen sich nicht"]},
+	"terror": {"perm": false, "i": "terror", "u": "f",
+		"n": ["Terror", "Ужас", "Terreur", "Schrecken"],
+		"d": ["Enemies flee", "Враговете бягат", "Ennemis fuient", "Gegner fliehen"]},
+	"regenb": {"perm": false, "i": "regenb", "u": "f",
+		"n": ["Regen", "Регенерация", "Régén", "Regen"],
+		"d": ["+1 HP each floor", "+1 HP на етаж", "+1 PV par étage", "+1 HP pro Ebene"]},
+	"swift": {"perm": false, "i": "swift", "u": "u",
+		"n": ["Swift", "Бърз", "Rapide", "Schnell"],
+		"d": ["+2 steps", "+2 стъпки", "+2 pas", "+2 Schritte"]},
+	"gtouch": {"perm": false, "i": "gtouch", "u": "u",
+		"n": ["Golden touch", "Златно докосване", "Toucher d'or", "Goldene Hand"],
+		"d": ["Next chest x3", "Следващ сандък x3", "Prochain coffre x3", "Nächste Truhe x3"]},
+	"berserk": {"perm": false, "i": "berserk", "u": "f",
+		"n": ["Berserk", "Берсерк", "Berserk", "Berserker"],
+		"d": ["Kill without damage", "Убиваш без щета", "Tue sans dégât", "Töte ohne Schaden"]},
+	"ghost": {"perm": false, "i": "ghost", "u": "f",
+		"n": ["Ghost walk", "Призрачен ход", "Marche fantôme", "Geisterschritt"],
+		"d": ["Walk through walls", "Минаваш през стени", "Traverse les murs", "Gehe durch Wände"]},
+	"eagleeye": {"perm": false, "i": "eagleeye", "u": "f",
+		"n": ["Eagle eye", "Орлово око", "Œil d'aigle", "Adlerauge"],
+		"d": ["Firebolt range +2", "Firebolt обхват +2", "Portée Firebolt +2", "Firebolt-Reichweite +2"]},
+	"fortune": {"perm": false, "i": "fortune", "u": "f",
+		"n": ["Fortune", "Късмет", "Fortune", "Fortuna"],
+		"d": ["Traps give gold", "Капаните дават злато", "Pièges donnent de l'or", "Fallen geben Gold"]},
+	"guardian": {"perm": false, "i": "guardian", "u": "f",
+		"n": ["Guardian", "Пазител", "Gardien", "Wächter"],
+		"d": ["+1 shield charge", "+1 заряд щит", "+1 charge bouclier", "+1 Schildladung"]},
+	"xpsurge": {"perm": false, "i": "xpsurge", "u": "f",
+		"n": ["XP surge", "Прилив на XP", "Vague d'XP", "XP-Schub"],
+		"d": ["Double XP", "Двоен XP", "XP double", "Doppelte XP"]},
+}
+
+# permanent buffs handed out by quests, and the level at which the milestone ones unlock
+const QUEST_BUFFS := ["goldsense", "treasure", "regen", "surestep", "keeneye", "bargain", "vampiric", "scholar"]
+const LEVEL_BUFFS := {5: "ironskin", 8: "stride", 10: "secondw", 12: "luckyroll"}
 
 enum S { MENU, SLOTS, CLASS, SETTINGS, PLAYING, INVENTORY }
 
@@ -252,6 +494,11 @@ var shop_offer: Array = []        # 3 item ids currently offered
 var shop_bought: Dictionary = {}  # item id -> true once bought this visit
 var shop_quests: Array = []       # 2 quest dicts offered this visit
 var shop_quest_pick := -1         # index of quest picked this visit (visit-local)
+var bag_items: Array = []         # carried item ids, up to BAG_MAX
+var perm_buffs: Dictionary = {}   # buff id -> stacks (whole run)
+var temp_buffs: Dictionary = {}   # buff id -> remaining floors / turns / uses
+var second_wind_used := false     # secondw already saved you on this floor?
+var blinking := false             # blink stone: waiting for a target cell
 var shop_tut_seen := false        # (legacy, kept for settings compat)
 var shop_tut_done_run := false    # shop intro shown this run yet?
 var pending_advance := false
@@ -350,6 +597,13 @@ var shop_quest_cards: Array = []    # [{root, title, body}] x2
 var shop_continue_btn: Button
 var shop_buy_hdr: Label
 var shop_quest_hdr: Label
+# items popup (use a carried item mid-run)
+var items_ui: Control
+var items_btn: Button
+var items_title: Label
+var items_count: Label
+var items_slots: Array = []      # [{root, icon, name, desc}] x BAG_MAX
+var items_close_btn: Button
 # level-up overlay
 var levelup_ui: Control
 var levelup_title: Label
@@ -369,10 +623,12 @@ var inv_title: Label
 var inv_hero_sprite: TextureRect
 var inv_hero_name: Label
 var inv_hero_stats: Label
+var inv_buffs_title: Label
+var inv_buffs_box: HBoxContainer
 var inv_items_title: Label
-var inv_items_label: Label
+var inv_slots: Array = []        # [{root, icon, name, desc}] x BAG_MAX
 var inv_quest_title: Label
-var inv_quest_label: Label
+var inv_quest_cols: Array = []   # [{head, body}] x3 — mission / reward / penalty
 # slot card pieces
 var slot_sprites: Array = []
 var slot_names: Array = []
@@ -482,6 +738,13 @@ func _build_ui() -> void:
 	settings_ingame_btn.add_theme_font_size_override("font_size", 24)
 	settings_ingame_btn.pressed.connect(_open_ingame_settings)
 
+	items_btn = _make_button(game_ui, "", Vector2.ZERO, Vector2(10, 10), "primary")
+	items_btn.add_theme_font_size_override("font_size", 24)
+	items_btn.icon = _sprite_texture("potion", 5)
+	items_btn.vertical_icon_alignment = VERTICAL_ALIGNMENT_TOP
+	items_btn.expand_icon = false
+	items_btn.pressed.connect(_open_items)
+
 	log_panel = Panel.new()
 	var lsb := StyleBoxFlat.new()
 	lsb.bg_color = Color8(42, 36, 32)
@@ -490,7 +753,7 @@ func _build_ui() -> void:
 	lsb.set_corner_radius_all(6)
 	log_panel.add_theme_stylebox_override("panel", lsb)
 	game_ui.add_child(log_panel)
-	log_label = _make_label(log_panel, Vector2(14, 12), Vector2(440, 150), 22, C_CREAM)
+	log_label = _make_label(log_panel, Vector2(12, 10), Vector2(204, 158), 22, C_CREAM)
 	log_label.vertical_alignment = VERTICAL_ALIGNMENT_TOP
 	log_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 
@@ -699,14 +962,78 @@ func _build_ui() -> void:
 	hcard.add_child(inv_hero_sprite)
 	inv_hero_name = _make_label(hcard, Vector2(150, 24), Vector2(460, 44), 30, C_ACCENT)
 	inv_hero_stats = _make_label(hcard, Vector2(150, 74), Vector2(470, 90), 24, C_CREAM)
-	inv_items_title = _make_label(inventory_ui, Vector2(50, 380), Vector2(620, 44), 30, C_ACCENT)
-	inv_items_label = _make_label(inventory_ui, Vector2(50, 434), Vector2(620, 220), 24, C_CREAM)
-	inv_items_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	inv_items_label.vertical_alignment = VERTICAL_ALIGNMENT_TOP
-	inv_quest_title = _make_label(inventory_ui, Vector2(50, 680), Vector2(620, 44), 30, C_ACCENT)
-	inv_quest_label = _make_label(inventory_ui, Vector2(50, 734), Vector2(620, 160), 24, C_CREAM)
-	inv_quest_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	inv_quest_label.vertical_alignment = VERTICAL_ALIGNMENT_TOP
+	# buffs — one bubble each, scrolls sideways when there are many
+	inv_buffs_title = _make_label(inventory_ui, Vector2(50, 350), Vector2(620, 36), 30, C_ACCENT)
+	var bscroll := ScrollContainer.new()
+	bscroll.position = Vector2(40, 394)
+	bscroll.size = Vector2(640, 96)
+	bscroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO
+	bscroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	inventory_ui.add_child(bscroll)
+	inv_buffs_box = HBoxContainer.new()
+	inv_buffs_box.add_theme_constant_override("separation", 10)
+	bscroll.add_child(inv_buffs_box)
+
+	# carried items — 2 rows of 5
+	inv_items_title = _make_label(inventory_ui, Vector2(50, 506), Vector2(620, 36), 30, C_ACCENT)
+	inv_slots = []
+	for i in BAG_MAX:
+		var col := i % 5
+		var row := int(i / 5.0)
+		var cell := Panel.new()
+		cell.position = Vector2(40 + col * 130, 550 + row * 168)
+		cell.size = Vector2(120, 156)
+		var csb := StyleBoxFlat.new()
+		csb.bg_color = Color8(42, 36, 32)
+		csb.set_border_width_all(2)
+		csb.border_color = Color8(106, 90, 68)
+		csb.set_corner_radius_all(6)
+		cell.add_theme_stylebox_override("panel", csb)
+		inventory_ui.add_child(cell)
+		var ic := TextureRect.new()
+		ic.position = Vector2(28, 12)
+		ic.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+		ic.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		cell.add_child(ic)
+		var nm := _make_label(cell, Vector2(4, 74), Vector2(112, 28), 22, C_CREAM)
+		nm.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		nm.clip_text = true
+		var ds := _make_label(cell, Vector2(4, 102), Vector2(112, 50), 18, C_MUTED)
+		ds.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		ds.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		ds.vertical_alignment = VERTICAL_ALIGNMENT_TOP
+		ds.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+		inv_slots.append({"root": cell, "sb": csb, "icon": ic, "name": nm, "desc": ds})
+
+	# quest — one panel, three columns
+	inv_quest_title = _make_label(inventory_ui, Vector2(50, 890), Vector2(620, 36), 30, C_ACCENT)
+	var qpanel := Panel.new()
+	qpanel.position = Vector2(40, 934)
+	qpanel.size = Vector2(640, 190)
+	var qsb := StyleBoxFlat.new()
+	qsb.bg_color = Color8(42, 36, 32)
+	qsb.set_border_width_all(2)
+	qsb.border_color = Color8(201, 162, 39)
+	qsb.set_corner_radius_all(6)
+	qpanel.add_theme_stylebox_override("panel", qsb)
+	inventory_ui.add_child(qpanel)
+	inv_quest_cols = []
+	var col_w := [260, 190, 190]
+	var col_x := 0
+	for i in 3:
+		if i > 0:
+			var sep := ColorRect.new()
+			sep.position = Vector2(col_x, 14)
+			sep.size = Vector2(2, 162)
+			sep.color = Color8(74, 64, 56)
+			sep.mouse_filter = Control.MOUSE_FILTER_IGNORE
+			qpanel.add_child(sep)
+		var head := _make_label(qpanel, Vector2(col_x + 14, 14), Vector2(col_w[i] - 24, 28), 18, C_MUTED)
+		var body := _make_label(qpanel, Vector2(col_x + 14, 48), Vector2(col_w[i] - 24, 128), 22, C_CREAM)
+		body.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		body.vertical_alignment = VERTICAL_ALIGNMENT_TOP
+		inv_quest_cols.append({"head": head, "body": body})
+		col_x += col_w[i]
 
 	# ---- Tutorial overlay ----
 	tutorial_ui = Control.new()
@@ -777,7 +1104,7 @@ func _build_shop_overlay(layer: CanvasLayer) -> void:
 	spanel.add_theme_stylebox_override("panel", ssb)
 	shop_ui.add_child(spanel)
 
-	_make_icon(spanel, Vector2(32, 30), "bag", 6)
+	_make_icon(spanel, Vector2(32, 30), "shop", 6)
 	var stitle := _make_label(spanel, Vector2(96, 34), Vector2(360, 50), 40, C_ACCENT)
 	stitle.text = t("tut_merchant_t")
 	shop_gold_label = _make_label(spanel, Vector2(400, 42), Vector2(210, 40), 30, C_GOLD)
@@ -863,6 +1190,65 @@ func _build_levelup_overlay(layer: CanvasLayer) -> void:
 	levelup_ab_btn = _make_button(lpanel, "", Vector2(70, 334), Vector2(320, 100), "primary")
 	levelup_ab_btn.add_theme_font_size_override("font_size", 30)
 	levelup_ab_btn.pressed.connect(_levelup_choose.bind("charge"))
+
+	_build_items_overlay(layer)
+
+
+func _build_items_overlay(layer: CanvasLayer) -> void:
+	items_ui = Control.new()
+	items_ui.set_anchors_preset(Control.PRESET_FULL_RECT)
+	items_ui.mouse_filter = Control.MOUSE_FILTER_STOP
+	items_ui.theme = ui_theme
+	items_ui.visible = false
+	layer.add_child(items_ui)
+	var idim := ColorRect.new()
+	idim.set_anchors_preset(Control.PRESET_FULL_RECT)
+	idim.color = Color(0.02, 0.02, 0.02, 0.85)
+	items_ui.add_child(idim)
+	var ipanel := Panel.new()
+	ipanel.position = Vector2(50, 300)
+	ipanel.size = Vector2(620, 700)
+	var isb := StyleBoxFlat.new()
+	isb.bg_color = Color8(33, 29, 24)
+	isb.set_border_width_all(3)
+	isb.border_color = Color8(201, 162, 39)
+	isb.set_corner_radius_all(10)
+	ipanel.add_theme_stylebox_override("panel", isb)
+	items_ui.add_child(ipanel)
+	items_title = _make_label(ipanel, Vector2(0, 22), Vector2(620, 50), 40, C_ACCENT)
+	items_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	items_count = _make_label(ipanel, Vector2(0, 78), Vector2(620, 34), 22, C_MUTED)
+	items_count.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+
+	items_slots = []
+	for i in BAG_MAX:
+		var col := i % 5
+		var row := int(i / 5.0)
+		var b := Button.new()
+		b.position = Vector2(24 + col * 116, 126 + row * 200)
+		b.size = Vector2(108, 188)
+		_style_button(b, "secondary")
+		b.pressed.connect(_use_bag_item.bind(i))
+		ipanel.add_child(b)
+		var ic := TextureRect.new()
+		ic.position = Vector2(22, 16)
+		ic.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+		ic.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		b.add_child(ic)
+		var nm := _make_label(b, Vector2(4, 96), Vector2(100, 30), 22, C_CREAM)
+		nm.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		nm.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		nm.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		var ds := _make_label(b, Vector2(4, 128), Vector2(100, 56), 18, C_MUTED)
+		ds.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		ds.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		ds.vertical_alignment = VERTICAL_ALIGNMENT_TOP
+		ds.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		items_slots.append({"root": b, "icon": ic, "name": nm, "desc": ds})
+
+	items_close_btn = _make_button(ipanel, "", Vector2(160, 588), Vector2(300, 84), "tertiary")
+	items_close_btn.add_theme_font_size_override("font_size", 30)
+	items_close_btn.pressed.connect(func(): _sfx("button"); items_ui.visible = false; queue_redraw())
 
 
 func _make_label(parent: Control, pos: Vector2, sz: Vector2, font_size: int, color: Color) -> Label:
@@ -1027,8 +1413,12 @@ func _layout_bottom() -> void:
 	settings_ingame_btn.size = Vector2(200, 72)
 	roll_button.position = Vector2(wide_x, 940)
 	roll_button.size = Vector2(468, 108)
-	log_panel.position = Vector2(wide_x, 1058)
-	log_panel.size = Vector2(468, 178)
+	# Items and the log share the row under Roll die as two equal squares
+	var sq := (468.0 - 12.0) / 2.0
+	items_btn.position = Vector2(wide_x, 1058)
+	items_btn.size = Vector2(sq, 178)
+	log_panel.position = Vector2(wide_x + sq + 12, 1058)
+	log_panel.size = Vector2(sq, 178)
 
 
 func _show_game() -> void:
@@ -1115,12 +1505,17 @@ func _xp_needed() -> int:
 func _gain_xp(n: int) -> void:
 	if n <= 0:
 		return
+	if has_buff("xpsurge"):
+		n *= 2
 	hero_xp += n
 	while hero_xp >= _xp_needed():
 		hero_xp -= _xp_needed()
 		hero_level += 1
 		pending_levelups += 1
+		if LEVEL_BUFFS.has(hero_level):
+			add_buff(String(LEVEL_BUFFS[hero_level]))   # milestone perk
 		_sfx("win")
+	perm_buffs["veteran"] = hero_level
 	update_hud()
 	_maybe_show_levelup()
 
@@ -1168,19 +1563,12 @@ func _levelup_choose(kind: String) -> void:
 # =====================================================================
 #  Merchant / shop
 # =====================================================================
-func _item_by_id(id: String) -> Dictionary:
-	for it in SHOP_ITEMS:
-		if it["id"] == id:
-			return it
-	return {}
-
-
 func _make_quest(tier: int) -> Dictionary:
 	# tier 0 = easier/smaller stakes, 1 = harder/bigger stakes
 	var span := 4 + tier + randi() % 2               # tier0: 4-5, tier1: 5-6 floors
 	var target := randi_range(14, 20) if tier == 0 else randi_range(28, 42)
-	var reward := {"gold": 0, "xp": 0}
-	match randi() % 3:
+	var reward := {"gold": 0, "xp": 0, "buff": ""}
+	match randi() % 4:
 		0:
 			reward["gold"] = randi_range(18, 28) + tier * 10
 		1:
@@ -1188,6 +1576,16 @@ func _make_quest(tier: int) -> Dictionary:
 		2:
 			reward["gold"] = randi_range(10, 16) + tier * 6
 			reward["xp"] = randi_range(2, 3)
+		3:
+			# a permanent perk you don't have yet, otherwise fall back to gold
+			var pool: Array = []
+			for b in QUEST_BUFFS:
+				if not perm_buffs.has(b):
+					pool.append(b)
+			if pool.is_empty():
+				reward["gold"] = randi_range(20, 30) + tier * 10
+			else:
+				reward["buff"] = pool[randi() % pool.size()]
 	var penalty := {}
 	if randi() % 2 == 0:
 		penalty["gold"] = randi_range(6, 12) + tier * 4
@@ -1211,6 +1609,9 @@ func _quest_reward_text(q: Dictionary) -> String:
 	var r: Dictionary = q["reward"]
 	var g: int = int(r["gold"])
 	var x: int = int(r["xp"])
+	var b := String(r.get("buff", ""))
+	if b != "":
+		return t("quest_rew_b") % _buff_name(b)
 	if g > 0 and x > 0:
 		return t("quest_rew_gx") % [g, x]
 	if x > 0:
@@ -1228,9 +1629,7 @@ func _quest_penalty_text(q: Dictionary) -> String:
 
 
 func _open_shop() -> void:
-	var ids: Array = []
-	for it in SHOP_ITEMS:
-		ids.append(it["id"])
+	var ids: Array = ITEMS.keys()
 	ids.shuffle()
 	shop_offer = ids.slice(0, 3)
 	shop_bought = {}
@@ -1252,18 +1651,18 @@ func _render_shop() -> void:
 	shop_quest_hdr.text = t("shop_hdr_quest")
 	shop_continue_btn.text = t("ui_continue")
 	for i in 3:
-		var it := _item_by_id(shop_offer[i])
+		var id: String = shop_offer[i]
 		var row: Dictionary = shop_item_rows[i]
-		row["icon"].texture = _sprite_texture(it["icon"], 8)
-		row["name"].text = t(it["t"])
-		row["desc"].text = t(it["b"])
+		row["icon"].texture = _sprite_texture(id, 8)
+		row["name"].text = _item_name(id)
+		row["desc"].text = _item_desc(id)
 		var pbtn: Button = row["price"]
-		if shop_bought.get(it["id"], false):
+		if shop_bought.get(id, false):
 			pbtn.text = t("shop_owned")
 			pbtn.disabled = true
 		else:
-			pbtn.text = "%d GP" % int(it["cost"])
-			pbtn.disabled = int(player.gold) < int(it["cost"])
+			pbtn.text = "%d GP" % _item_cost(id)
+			pbtn.disabled = int(player.gold) < _item_cost(id)
 	for i in 2:
 		var q: Dictionary = shop_quests[i]
 		var card: Dictionary = shop_quest_cards[i]
@@ -1280,24 +1679,24 @@ func _render_shop() -> void:
 
 
 func _buy_item(idx: int) -> void:
-	var it := _item_by_id(shop_offer[idx])
-	if shop_bought.get(it["id"], false) or int(player.gold) < int(it["cost"]):
+	var id: String = shop_offer[idx]
+	var cost := _item_cost(id)
+	if shop_bought.get(id, false) or int(player.gold) < cost:
+		return
+	var carry := bool(ITEMS[id].get("carry", false))
+	if carry and bag_items.size() >= BAG_MAX:
+		add_log(t("log_bag_full"))
 		return
 	_sfx("coin")
-	player.gold = int(player.gold) - int(it["cost"])
-	shop_bought[it["id"]] = true
-	match it["id"]:
-		"potion":
-			player.hp = mini(int(player.max_hp), int(player.hp) + 5)
-		"elixir":
-			player.hp = int(player.max_hp)
-		"maxhp":
-			player.max_hp = int(player.max_hp) + 2
-			player.hp = int(player.hp) + 2
-		"tome":
-			_gain_xp(3)
-	add_log(t("log_bought") % t(it["t"]))
+	player.gold = int(player.gold) - cost
+	shop_bought[id] = true
+	if carry:
+		_bag_add(id)              # goes in the bag, used later from Items
+	else:
+		_apply_item(id)           # crystal / tome apply straight away
+	add_log(t("log_bought") % _item_name(id))
 	update_hud()
+	_update_items_button()
 	_render_shop()
 
 
@@ -1319,6 +1718,8 @@ func _check_quest_progress() -> void:
 			player.gold = int(player.gold) + int(r["gold"])
 		if int(r["xp"]) > 0:
 			_gain_xp(int(r["xp"]))
+		if String(r.get("buff", "")) != "":
+			add_buff(String(r["buff"]))
 		active_quest = {}
 		add_log(t("log_quest_done") % _quest_reward_text(q))
 		update_hud()
@@ -1348,17 +1749,84 @@ func _show_inventory() -> void:
 	inv_hero_sprite.texture = _sprite_texture(hero_class, 8)
 	inv_hero_name.text = t("cls_%s_name" % hero_class)
 	inv_hero_stats.text = ("Lv %d · " % hero_level) + (t("hud_level") % level) + ("\nHP %d/%d · " % [player.hp, player.max_hp]) + (t("inv_xp") % [hero_xp, _xp_needed()])
-	inv_items_label.text = t("inv_no_items")
-	if active_quest.is_empty():
-		inv_quest_label.text = t("inv_no_quest")
-	else:
-		inv_quest_label.text = "%s\n%s\n%s\n%s" % [
-			_quest_desc(active_quest),
-			t("quest_deadline") % int(active_quest["deadline"]),
-			_quest_reward_text(active_quest),
-			_quest_penalty_text(active_quest),
-		]
+	_render_buff_row()
+	_render_bag_slots()
+	_render_quest_cols()
 	_set_screen(S.INVENTORY)
+
+
+# One bubble per buff: gold border for permanent, cyan for temporary.
+func _render_buff_row() -> void:
+	for c in inv_buffs_box.get_children():
+		c.queue_free()
+	var ids: Array = perm_buffs.keys()
+	ids.append_array(temp_buffs.keys())
+	if ids.is_empty():
+		var none := Label.new()
+		none.text = t("ui_no_buffs")
+		none.add_theme_font_size_override("font_size", 22)
+		none.add_theme_color_override("font_color", C_MUTED)
+		none.custom_minimum_size = Vector2(300, 88)
+		none.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		inv_buffs_box.add_child(none)
+		return
+	for id in ids:
+		var b: Dictionary = BUFFS[id]
+		var perm := bool(b["perm"])
+		var bubble := Panel.new()
+		bubble.custom_minimum_size = Vector2(230, 88)
+		var bsb := StyleBoxFlat.new()
+		bsb.bg_color = Color8(42, 36, 32)
+		bsb.set_border_width_all(2)
+		bsb.border_color = Color8(201, 162, 39) if perm else Color8(94, 200, 224)
+		bsb.set_corner_radius_all(20)
+		bubble.add_theme_stylebox_override("panel", bsb)
+		inv_buffs_box.add_child(bubble)
+		_make_icon(bubble, Vector2(12, 24), String(b["i"]), 5)
+		var nm := _make_label(bubble, Vector2(62, 12), Vector2(160, 30), 22, C_ACCENT if perm else Color8(94, 200, 224))
+		var stacks := buff_stacks(id)
+		nm.text = _buff_name(id) + ((" x%d" % stacks) if perm and stacks > 1 else "")
+		var sub := _make_label(bubble, Vector2(62, 44), Vector2(160, 34), 18, C_MUTED)
+		if perm:
+			sub.text = _buff_desc(id)
+		else:
+			var unit := String(b.get("u", "f"))
+			if unit == "u":
+				sub.text = t("buff_left_u")
+			else:
+				sub.text = t("buff_left_" + unit) % stacks
+
+
+func _render_bag_slots() -> void:
+	for i in BAG_MAX:
+		var s: Dictionary = inv_slots[i]
+		var sb: StyleBoxFlat = s["sb"]
+		if i < bag_items.size():
+			var id: String = bag_items[i]
+			s["icon"].texture = _sprite_texture(id, 7)
+			s["icon"].visible = true
+			s["name"].text = _item_name(id)
+			s["desc"].text = _item_desc(id)
+			sb.border_color = Color8(201, 162, 39)
+		else:
+			s["icon"].visible = false
+			s["name"].text = ""
+			s["desc"].text = t("ui_empty_slot")
+			sb.border_color = Color8(74, 64, 56)
+
+
+func _render_quest_cols() -> void:
+	inv_quest_cols[0]["head"].text = t("col_mission")
+	inv_quest_cols[1]["head"].text = t("col_reward")
+	inv_quest_cols[2]["head"].text = t("col_penalty")
+	if active_quest.is_empty():
+		inv_quest_cols[0]["body"].text = t("inv_no_quest")
+		inv_quest_cols[1]["body"].text = "—"
+		inv_quest_cols[2]["body"].text = "—"
+		return
+	inv_quest_cols[0]["body"].text = _quest_desc(active_quest) + "\n" + (t("quest_deadline") % int(active_quest["deadline"]))
+	inv_quest_cols[1]["body"].text = _quest_reward_text(active_quest)
+	inv_quest_cols[2]["body"].text = _quest_penalty_text(active_quest)
 
 
 # =====================================================================
@@ -1372,6 +1840,240 @@ func t(key: String) -> String:
 	if i < 0:
 		i = 0
 	return arr[i]
+
+
+# Pick the current language out of an inline [en, bg, fr, de] array.
+func _L(arr: Array) -> String:
+	var i := LANGS.find(locale)
+	if i < 0:
+		i = 0
+	return arr[i]
+
+
+# =====================================================================
+#  Items + buffs
+# =====================================================================
+func _item_name(id: String) -> String:
+	return _L(ITEMS[id]["n"])
+
+
+func _item_desc(id: String) -> String:
+	return _L(ITEMS[id]["d"])
+
+
+func _buff_name(id: String) -> String:
+	return _L(BUFFS[id]["n"])
+
+
+func _buff_desc(id: String) -> String:
+	return _L(BUFFS[id]["d"])
+
+
+func _item_cost(id: String) -> int:
+	var c: int = int(ITEMS[id]["cost"])
+	if has_buff("bargain"):
+		c = maxi(1, int(round(c * 0.8)))     # Bargainer: 20% off
+	return c
+
+
+func has_buff(id: String) -> bool:
+	return perm_buffs.has(id) or temp_buffs.has(id)
+
+
+func buff_stacks(id: String) -> int:
+	if perm_buffs.has(id):
+		return int(perm_buffs[id])
+	return int(temp_buffs.get(id, 0))
+
+
+func add_buff(id: String, amount := 1) -> void:
+	if not BUFFS.has(id):
+		return
+	if bool(BUFFS[id]["perm"]):
+		perm_buffs[id] = int(perm_buffs.get(id, 0)) + amount
+	else:
+		temp_buffs[id] = maxi(int(temp_buffs.get(id, 0)), amount)
+	add_log(t("log_buff") % _buff_name(id))
+
+
+# Spend one charge of a use-based temp buff. Returns true if one was available.
+func _spend_buff(id: String) -> bool:
+	var left := int(temp_buffs.get(id, 0))
+	if left <= 0:
+		return false
+	left -= 1
+	if left <= 0:
+		temp_buffs.erase(id)
+	else:
+		temp_buffs[id] = left
+	return true
+
+
+# Put a bought item in the bag. Returns false if there is no room.
+func _bag_add(id: String) -> bool:
+	if bag_items.size() >= BAG_MAX:
+		add_log(t("log_bag_full"))
+		return false
+	bag_items.append(id)
+	return true
+
+
+# Apply an item's effect. `from_bag` items are removed by the caller.
+func _apply_item(id: String) -> void:
+	match id:
+		"potion":
+			player.hp = mini(int(player.max_hp), int(player.hp) + 5)
+		"elixir":
+			player.hp = int(player.max_hp)
+		"bandage":
+			player.hp = mini(int(player.max_hp), int(player.hp) + 2)
+			add_buff("regenb", 3)
+		"sscroll":
+			add_buff("shielded", 1)
+		"mirror":
+			add_buff("mirrored", 1)
+		"bomb":
+			_blast(2)
+		"fflask":
+			_blast(1)
+		"hourglass":
+			add_buff("frozen", 2)
+		"smokeb":
+			add_buff("hidden", 2)
+		"horn":
+			add_buff("terror", 1)
+		"ladder":
+			player.pos = exit_cell
+			path.append(exit_cell)
+			_win()
+		"boots":
+			add_buff("swift", 1)
+		"luckydie":
+			options = []
+			option_paths = {}
+			awaiting_move = false
+			roll_button.disabled = false
+			_on_roll()
+		"blink":
+			blinking = true
+			casting = false
+			drilling = false
+			add_log(t("log_blink"))
+		"pickaxe":
+			wall_charges += 1
+			drilling = true
+			add_log(t("log_pick_wall"))
+		"clover":
+			add_buff("dgold", 3)
+		"magnet":
+			var got := 0
+			for e in entities:
+				if e.alive and e.type == "coin":
+					e.alive = false
+					got += 1
+			_gain_gold(got)
+			_sfx("coin")
+			add_log(t("log_magnet") % got)
+		"key":
+			add_buff("gtouch", 1)
+		"rune":
+			bonus_charges += 1
+			match hero_class:
+				"knight": shield_charges += 1
+				"mage": mage_casts += 1
+				"ranger": wall_charges += 1
+		"trapkit":
+			for e in entities:
+				if e.alive and e.type == "trap":
+					e.alive = false
+			add_log(t("log_traps_gone"))
+		"crystal":
+			player.max_hp = int(player.max_hp) + 2
+			player.hp = int(player.hp) + 2
+			add_buff("vitality")
+		"tome":
+			_gain_xp(3)
+
+
+# Kill every enemy within `r` cells of the player.
+func _blast(r: int) -> void:
+	var killed := 0
+	for e in entities:
+		if not e.alive or e.type != "enemy":
+			continue
+		var d := maxi(absi(e.pos.x - player.pos.x), absi(e.pos.y - player.pos.y))
+		if d <= r:
+			e.alive = false
+			killed += 1
+	_sfx("hit")
+	add_log(t("log_boom") % killed)
+
+
+func _update_items_button() -> void:
+	items_btn.text = "%s\n%d/%d" % [t("ui_items"), bag_items.size(), BAG_MAX]
+	items_btn.disabled = bag_items.is_empty()
+	if not bag_items.is_empty():
+		items_btn.icon = _sprite_texture(String(bag_items[0]), 5)
+
+
+func _open_items() -> void:
+	if bag_items.is_empty():
+		return
+	_sfx("button")
+	_render_items_popup()
+	items_ui.visible = true
+	items_ui.get_parent().move_child(items_ui, -1)
+	queue_redraw()
+
+
+func _render_items_popup() -> void:
+	items_title.text = t("ui_use_item")
+	items_count.text = t("ui_carried") % [bag_items.size(), BAG_MAX]
+	items_close_btn.text = t("ui_close")
+	for i in BAG_MAX:
+		var s: Dictionary = items_slots[i]
+		var b: Button = s["root"]
+		if i < bag_items.size():
+			var id: String = bag_items[i]
+			b.visible = true
+			b.disabled = false
+			s["icon"].texture = _sprite_texture(id, 8)
+			s["icon"].visible = true
+			s["name"].text = _item_name(id)
+			s["desc"].text = _item_desc(id)
+		else:
+			b.visible = false
+
+
+func _use_bag_item(idx: int) -> void:
+	if idx < 0 or idx >= bag_items.size() or game_over:
+		return
+	var id: String = bag_items[idx]
+	_sfx("button")
+	bag_items.remove_at(idx)
+	_apply_item(id)
+	add_log(t("log_item_used") % _item_name(id))
+	update_hud()
+	_update_ability_ui()
+	_update_items_button()
+	if items_ui.visible:
+		if bag_items.is_empty() or id in ["blink", "pickaxe", "ladder", "luckydie"]:
+			items_ui.visible = false      # these need the board, so step out of the way
+		else:
+			_render_items_popup()
+	queue_redraw()
+
+
+# Count down floor-based temp buffs as a new floor begins.
+func _tick_floor_buffs() -> void:
+	for id in temp_buffs.keys():
+		if String(BUFFS[id].get("u", "f")) != "f":
+			continue
+		var left := int(temp_buffs[id]) - 1
+		if left <= 0:
+			temp_buffs.erase(id)
+		else:
+			temp_buffs[id] = left
 
 
 func _set_language(l: String) -> void:
@@ -1398,9 +2100,11 @@ func _apply_language() -> void:
 	death_restart_btn.text = t("ui_restart")
 	death_hint.text = t("death_hint")
 	inv_btn.text = t("ui_bag")
-	inv_title.text = t("ui_inventory")
+	inv_title.text = t("ui_bag_title")
+	inv_buffs_title.text = t("ui_buffs")
 	inv_items_title.text = t("ui_items")
 	inv_quest_title.text = t("ui_quest")
+	_update_items_button()
 	var classes := ["knight", "mage", "ranger"]
 	for i in 3:
 		class_name_labels[i].text = t("cls_%s_name" % classes[i])
@@ -1679,7 +2383,7 @@ func _try_cast(cell: Vector2i) -> void:
 	if e == null or e.type != "enemy":
 		return
 	var d := maxi(absi(cell.x - player.pos.x), absi(cell.y - player.pos.y))
-	if d > 4:
+	if d > (6 if has_buff("eagleeye") else 4):
 		return
 	e.alive = false
 	mage_casts -= 1
@@ -1795,6 +2499,9 @@ func _begin_run(data) -> void:
 		bonus_charges = 0
 		pending_levelups = 0
 		shop_tut_done_run = false
+		bag_items = []
+		perm_buffs = {}
+		temp_buffs = {}
 		active_quest = {}
 		next_shop_floor = randi_range(6, 8)
 	else:
@@ -1809,6 +2516,7 @@ func _begin_run(data) -> void:
 		hero_xp = int(data.get("hero_xp", 0))
 		bonus_charges = int(data.get("bonus_charges", 0))
 		pending_levelups = 0
+		_restore_bag_and_buffs(data)
 		active_quest = data.get("quest", {})
 		next_shop_floor = int(data.get("next_shop", level + randi_range(2, 4)))
 	new_level()
@@ -1816,6 +2524,27 @@ func _begin_run(data) -> void:
 
 func _to_vec(a) -> Vector2i:
 	return Vector2i(int(a[0]), int(a[1]))
+
+
+# JSON gives back plain arrays/dicts — rebuild the bag and buff tables, dropping
+# anything whose id no longer exists in the catalogues.
+func _restore_bag_and_buffs(data: Dictionary) -> void:
+	bag_items = []
+	for id in data.get("bag", []):
+		if ITEMS.has(String(id)) and bag_items.size() < BAG_MAX:
+			bag_items.append(String(id))
+	perm_buffs = {}
+	var pb = data.get("perm_buffs", {})
+	if pb is Dictionary:
+		for id in pb:
+			if BUFFS.has(String(id)):
+				perm_buffs[String(id)] = int(pb[id])
+	temp_buffs = {}
+	var tb = data.get("temp_buffs", {})
+	if tb is Dictionary:
+		for id in tb:
+			if BUFFS.has(String(id)):
+				temp_buffs[String(id)] = int(tb[id])
 
 
 func _serialize_state() -> Dictionary:
@@ -1839,6 +2568,9 @@ func _serialize_state() -> Dictionary:
 		"wallpass": wall_charges,
 		"casts": mage_casts,
 		"bonus_charges": bonus_charges,
+		"bag": bag_items,
+		"perm_buffs": perm_buffs,
+		"temp_buffs": temp_buffs,
 		"gold": player.gold, "hp": player.hp, "max_hp": player.max_hp,
 		"entrance": [entrance_cell.x, entrance_cell.y],
 		"exit": [exit_cell.x, exit_cell.y],
@@ -1895,6 +2627,7 @@ func _restore_state(data: Dictionary) -> void:
 		death_ui.visible = false
 	bonus_charges = int(data.get("bonus_charges", 0))
 	pending_levelups = 0
+	_restore_bag_and_buffs(data)
 	shield_charges = int(data.get("shield", 1 if hero_class == "knight" else 0))
 	wall_charges = int(data.get("wallpass", 1 if hero_class == "ranger" else 0))
 	drilling = false
@@ -1937,9 +2670,21 @@ func new_level() -> void:
 	pending_advance = false
 	if death_ui:
 		death_ui.visible = false
+	_tick_floor_buffs()
+	second_wind_used = false
+	var heal := 0
+	if has_buff("regen"):
+		heal += 1
+	if has_buff("regenb"):
+		heal += 1
+	if heal > 0:
+		player.hp = mini(int(player.max_hp), int(player.hp) + heal)
 	shield_charges = (1 + bonus_charges) if hero_class == "knight" else 0
 	wall_charges = (1 + bonus_charges) if hero_class == "ranger" else 0
+	if has_buff("guardian"):
+		shield_charges += 1
 	drilling = false
+	blinking = false
 	mage_casts = (3 + bonus_charges) if hero_class == "mage" else 0
 	mage_turn_cast = false
 	casting = false
@@ -1953,6 +2698,7 @@ func new_level() -> void:
 	roll_result_label.text = ""
 	_update_main_button()
 	_update_ability_ui()
+	_update_items_button()
 	update_hud()
 	queue_redraw()
 	_autosave()             # auto-save whenever a new floor begins
@@ -2172,9 +2918,15 @@ func _on_roll() -> void:
 		await get_tree().create_timer(0.03 + i * 0.0028).timeout
 
 	current_n = 1 + randi() % 6
+	if has_buff("luckyroll") and randi() % 4 == 0:
+		current_n = 6                      # Lucky roll: sometimes the die favours you
 	diagonal = (current_n % 2) == 1
 	die_value = current_n
 	die_angle = 0.0
+	if has_buff("stride"):
+		current_n += 1                     # Long stride
+	if _spend_buff("swift"):
+		current_n += 2                     # Swift boots
 	spinning = false
 	if hero_class == "mage":
 		mage_turn_cast = true   # one cast available this turn
@@ -2241,8 +2993,8 @@ func _max_steps(from: Vector2i, d: Vector2i, n: int) -> int:
 		var np: Vector2i = p + d
 		if np.x < 0 or np.y < 0 or np.x >= COLS or np.y >= ROWS:
 			break
-		if is_wall(np):
-			break  # walls block movement
+		if is_wall(np) and not has_buff("ghost"):
+			break  # walls block movement (Ghost walk passes straight through)
 		p = np
 		k += 1
 	return k
@@ -2269,6 +3021,9 @@ func _unhandled_input(event: InputEvent) -> void:
 	if cell.x < 0 or cell.y < 0 or cell.x >= COLS or cell.y >= ROWS:
 		return
 
+	if blinking:
+		_try_blink(cell)
+		return
 	if casting:
 		_try_cast(cell)
 		return
@@ -2277,6 +3032,18 @@ func _unhandled_input(event: InputEvent) -> void:
 		return
 	if awaiting_move and cell in options:
 		_do_move(cell)
+
+
+func _try_blink(cell: Vector2i) -> void:
+	if is_wall(cell) or entity_at(cell) != null or cell == player.pos:
+		return
+	blinking = false
+	player.pos = cell
+	path.append(cell)
+	_sfx("step")
+	_resolve_tile(cell)
+	update_hud()
+	queue_redraw()
 
 
 func _do_move(target: Vector2i) -> void:
@@ -2312,7 +3079,7 @@ func _do_move(target: Vector2i) -> void:
 		if level >= next_shop_floor:
 			next_shop_floor = level + randi_range(6, 8)
 			_open_shop()        # merchant first; level-up prompts wait behind it
-		_gain_xp(1)             # a little XP for clearing a floor
+		_gain_xp(1 + (1 if has_buff("scholar") else 0))   # XP for clearing a floor
 		_check_quest_progress()
 		return
 
@@ -2371,13 +3138,26 @@ func _enemy_phase() -> void:
 			break
 		if e.alive and e.type == "enemy":
 			_step_enemy(e)
+	# turn-based temp buffs count down once per enemy phase
+	for id in temp_buffs.keys():
+		if String(BUFFS[id].get("u", "f")) != "t":
+			continue
+		var left := int(temp_buffs[id]) - 1
+		if left <= 0:
+			temp_buffs.erase(id)
+		else:
+			temp_buffs[id] = left
 	update_hud()
 
 
 func _step_enemy(e: Dictionary) -> void:
+	if has_buff("frozen"):
+		return                            # Frozen time: nobody moves
 	e.prev = e.pos    # remember where it moved from (for the last-move indicator)
 	var dist := maxi(absi(e.pos.x - player.pos.x), absi(e.pos.y - player.pos.y))
-	var chase := dist <= 7
+	var notice := 5 if has_buff("keeneye") else 7
+	var chase := dist <= notice and not has_buff("hidden") and not has_buff("terror")
+	var flee := has_buff("terror") and dist <= 7
 	var candidates: Array = []
 	for d in ORTHO_DIRS + DIAG_DIRS:
 		var tgt: Vector2i = e.pos + d
@@ -2396,13 +3176,14 @@ func _step_enemy(e: Dictionary) -> void:
 		candidates.append(tgt)
 	if candidates.is_empty():
 		return
-	if chase:
-		# move to the valid cell closest to the player (may be your own cell = attack)
+	if chase or flee:
+		# chase: step to the cell closest to you (your own cell = attack)
+		# flee (Terror): step to the cell furthest away instead
 		var best: Vector2i = candidates[0]
 		var bestd := maxi(absi(best.x - player.pos.x), absi(best.y - player.pos.y))
 		for c in candidates:
 			var cd := maxi(absi(c.x - player.pos.x), absi(c.y - player.pos.y))
-			if cd < bestd:
+			if (cd < bestd) if chase else (cd > bestd):
 				bestd = cd
 				best = c
 		if best == player.pos:
@@ -2416,13 +3197,19 @@ func _step_enemy(e: Dictionary) -> void:
 func _enemy_attack(e: Dictionary) -> void:
 	e.alive = false    # the enemy clashes onto you and dies
 	_sfx("hit")
+	if _spend_buff("mirrored"):
+		add_log(t("log_mirror"))   # the blow is turned back, you take nothing
+		return
+	if has_buff("berserk"):
+		return
 	if hero_class == "knight" and shield_charges > 0:
 		shield_charges -= 1        # shield absorbs the hit first
 		add_log(t("log_shield"))
 		_update_ability_ui()
+	elif _spend_buff("shielded"):
+		add_log(t("log_shield"))
 	else:
-		player.hp -= 1 + randi() % 6
-		_check_death()
+		_hurt(1 + randi() % 6)
 
 
 
@@ -2438,24 +3225,62 @@ func _resolve_tile(cell: Vector2i) -> void:
 	match ent.type:
 		"enemy":
 			_sfx("hit")
-			if hero_class == "knight" and shield_charges > 0:
+			if has_buff("berserk"):
+				pass                       # Berserk: kills cost you nothing
+			elif hero_class == "knight" and shield_charges > 0:
 				shield_charges -= 1        # free kill, no damage
 				add_log(t("log_shield"))
+			elif _spend_buff("shielded"):
+				add_log(t("log_shield"))
 			else:
-				player.hp -= 1 + randi() % 6
-				_check_death()
+				_hurt(1 + randi() % 6)
+			if has_buff("vampiric") and not game_over:
+				player.hp = mini(int(player.max_hp), int(player.hp) + 1)
 		"trap":
 			_sfx("trap")
-			player.gold = maxi(0, player.gold - (1 + randi() % 6))
+			var loss := 1 + randi() % 6
+			if has_buff("fortune"):
+				player.gold = int(player.gold) + loss     # Fortune: traps pay out
+			else:
+				if has_buff("surestep"):
+					loss = maxi(1, loss / 2)
+				player.gold = maxi(0, int(player.gold) - loss)
 		"coin":
 			_sfx("coin")
-			player.gold += 1
+			_gain_gold(1 + (1 if has_buff("goldsense") else 0))
 		"chest":
 			_sfx("chest")
-			player.gold += 1 + randi() % 6
+			var amt := 1 + randi() % 6
+			if has_buff("treasure"):
+				amt = int(round(amt * 1.5))
+			if _spend_buff("gtouch"):
+				amt *= 3
+			_gain_gold(amt)
 		"heart":
 			_sfx("heart")
 			player.hp = mini(player.max_hp, player.hp + 1 + randi() % 6)
+
+
+# Gold gain funnelled through here so Double gold applies everywhere.
+func _gain_gold(amount: int) -> void:
+	if amount <= 0:
+		return
+	if has_buff("dgold"):
+		amount *= 2
+	player.gold = int(player.gold) + amount
+
+
+# Damage funnelled through here so Iron skin / Second wind always apply.
+func _hurt(amount: int) -> void:
+	if has_buff("ironskin"):
+		amount = maxi(1, amount - 1)
+	player.hp = int(player.hp) - amount
+	if player.hp <= 0 and has_buff("secondw") and not second_wind_used:
+		second_wind_used = true
+		player.hp = 1
+		add_log(t("log_second_wind"))
+		return
+	_check_death()
 
 
 # =====================================================================
@@ -2488,6 +3313,9 @@ func _restart_run() -> void:
 	bonus_charges = 0
 	pending_levelups = 0
 	shop_tut_done_run = false
+	bag_items = []
+	perm_buffs = {}
+	temp_buffs = {}
 	active_quest = {}
 	next_shop_floor = randi_range(6, 8)
 	new_level()
@@ -2633,7 +3461,7 @@ func _draw() -> void:
 		for e in entities:
 			if e.alive and e.type == "enemy":
 				var dd := maxi(absi(e.pos.x - player.pos.x), absi(e.pos.y - player.pos.y))
-				if dd <= 4:
+				if dd <= (6 if has_buff("eagleeye") else 4):
 					draw_arc(cell_center(e.pos), TILE * 0.5, 0, TAU, 20, Color(0.85, 0.2, 0.28), 3.0)
 
 	# ranger drilling — highlight adjacent walls that can be breached
