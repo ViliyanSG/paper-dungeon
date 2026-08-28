@@ -8,6 +8,12 @@
 /android/
 debug.keystore
 
+# Signing keys — these must NEVER be committed
+*.keystore
+*.jks
+keystore.txt
+keystore.b64
+
 # OS / editor junk
 .DS_Store
 Thumbs.db
