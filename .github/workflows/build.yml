@@ -7,8 +7,6 @@ on:
 
 permissions:
   contents: write
-  pages: write
-  id-token: write
 
 jobs:
   export:
@@ -128,16 +126,8 @@ jobs:
         run: |
           mkdir -p build/web
           godot --headless --path . --import || true
-          godot --headless --path . --export-release "Web" build/web/index.html \
-            || godot --headless --path . --export-debug "Web" build/web/index.html
+          godot --headless --path . --export-debug "Web" build/web/index.html
           ls -la build/web
-
-      - name: Make it installable on iPhone (Apple PWA meta tags)
-        run: |
-          TAGS='<link rel="apple-touch-icon" href="index.apple-touch-icon.png"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black"><meta name="apple-mobile-web-app-title" content="Endless Descent"><meta name="mobile-web-app-capable" content="yes"><meta name="theme-color" content="#211d18">'
-          sed -i "s|</head>|${TAGS}</head>|" build/web/index.html
-          echo "apple tags injected: $(grep -c 'apple-mobile-web-app-capable' build/web/index.html)"
-          echo "manifest present: $(ls build/web | grep -c manifest)"
 
       - name: Zip web build (index.html at archive root)
         run: |
@@ -153,42 +143,6 @@ jobs:
           tag: v1.0.${{ github.run_number }}
           artifacts: EndlessDescent-web.zip
           token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Keep the web folder for the Pages job
-        uses: actions/upload-artifact@v4
-        with:
-          name: web-build
-          path: build/web
-          retention-days: 1
-
-  pages:
-    name: Publish playable web version
-    needs: web
-    runs-on: ubuntu-latest
-    continue-on-error: true      # a Pages hiccup must not fail the whole build
-    environment:
-      name: github-pages
-      url: ${{ steps.deploy.outputs.page_url }}
-    steps:
-      - name: Fetch web build
-        uses: actions/download-artifact@v4
-        with:
-          name: web-build
-          path: site
-
-      - name: Configure Pages
-        uses: actions/configure-pages@v5
-        with:
-          enablement: true
-
-      - name: Upload site
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: site
-
-      - name: Deploy
-        id: deploy
-        uses: actions/deploy-pages@v4
 
   itch:
     name: Publish to itch.io
