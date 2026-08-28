@@ -64,7 +64,28 @@ jobs:
       - name: Create debug keystore
         run: keytool -keyalg RSA -genkeypair -alias androiddebugkey -keypass android -keystore debug.keystore -storepass android -dname "CN=Android Debug,O=Android,C=US" -validity 9999 -deststoretype pkcs12
 
+      - name: Unpack the release keystore (only if one is configured)
+        env:
+          KS_B64: ${{ secrets.ANDROID_KEYSTORE_B64 }}
+        run: |
+          if [ -n "$KS_B64" ]; then
+            echo "$KS_B64" | base64 -d > release.keystore
+            echo "RELEASE_KEYSTORE=$(pwd)/release.keystore" >> $GITHUB_ENV
+            echo "Release keystore ready — this build will be release-signed."
+          else
+            echo "No ANDROID_KEYSTORE_B64 secret — falling back to a debug-signed APK."
+          fi
+
+      - name: Stamp the Android version code
+        run: |
+          sed -i 's|^version/code=.*|version/code=${{ github.run_number }}|' export_presets.cfg
+          sed -i 's|^version/name=.*|version/name="1.0.${{ github.run_number }}"|' export_presets.cfg
+          grep -E '^version/' export_presets.cfg
+
       - name: Configure Godot Android settings
+        env:
+          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          KEY_PASS: ${{ secrets.ANDROID_KEY_PASS }}
         run: |
           mkdir -p ~/.config/godot
           {
@@ -75,6 +96,11 @@ jobs:
             echo "export/android/debug_keystore = \"$(pwd)/debug.keystore\""
             echo 'export/android/debug_keystore_user = "androiddebugkey"'
             echo 'export/android/debug_keystore_pass = "android"'
+            if [ -n "$RELEASE_KEYSTORE" ]; then
+              echo "export/android/release_keystore = \"$RELEASE_KEYSTORE\""
+              echo "export/android/release_keystore_user = \"$KEY_ALIAS\""
+              echo "export/android/release_keystore_pass = \"$KEY_PASS\""
+            fi
           } > ~/.config/godot/editor_settings-4.tres
 
       - name: Install Android SDK build tools 34
@@ -92,11 +118,24 @@ jobs:
           touch android/.gdignore
 
       - name: Export APK
+        env:
+          GODOT_ANDROID_KEYSTORE_RELEASE_PATH: ${{ env.RELEASE_KEYSTORE }}
+          GODOT_ANDROID_KEYSTORE_RELEASE_USER: ${{ secrets.ANDROID_KEY_ALIAS }}
+          GODOT_ANDROID_KEYSTORE_RELEASE_PASSWORD: ${{ secrets.ANDROID_KEY_PASS }}
         run: |
           mkdir -p build/android
           godot --headless --path . --import || true
-          godot --headless --path . --export-debug "Android" build/android/EndlessDescent.apk
+          if [ -n "$RELEASE_KEYSTORE" ]; then
+            godot --headless --path . --export-release "Android" build/android/EndlessDescent.apk
+          else
+            godot --headless --path . --export-debug "Android" build/android/EndlessDescent.apk
+          fi
           ls -la build/android/EndlessDescent.apk
+
+      - name: Show how the APK was signed
+        run: |
+          APKSIGNER=$(find "$ANDROID_HOME" -name apksigner -type f 2>/dev/null | head -1)
+          "$APKSIGNER" verify --print-certs build/android/EndlessDescent.apk 2>&1 | head -8 || echo "(apksigner not available)"
 
       - name: Upload APK to release
         uses: ncipollo/release-action@v1
